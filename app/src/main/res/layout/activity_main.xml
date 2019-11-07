@@ -22,13 +22,12 @@
                 android:textSize="18sp"
                 android:text="这是测试"
                 android:background="@color/colorPrimary"></TextView>
-            <com.wxy.easyscrollerchartview.EasyScrollerChartView
+            <com.wxy.easyscrollerchartviewlibrary.EasyScrollerChartView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/colorAccent"
                 android:id="@+id/esc_view">
-
-            </com.wxy.easyscrollerchartview.EasyScrollerChartView>
+            </com.wxy.easyscrollerchartviewlibrary.EasyScrollerChartView>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

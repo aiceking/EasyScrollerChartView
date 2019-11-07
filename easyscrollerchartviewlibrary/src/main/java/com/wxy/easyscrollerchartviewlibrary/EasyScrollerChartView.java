@@ -1,4 +1,4 @@
-package com.wxy.easyscrollerchartview;
+package com.wxy.easyscrollerchartviewlibrary;
 
 import android.content.Context;
 import android.graphics.Canvas;

@@ -4,6 +4,8 @@ package com.wxy.easyscrollerchartview;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
+import com.wxy.easyscrollerchartviewlibrary.EasyScrollerChartView;
+
 import java.util.ArrayList;
 import java.util.List;
 
