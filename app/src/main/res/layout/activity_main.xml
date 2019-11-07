@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#ffffff"
+                android:gravity="center"
+                android:padding="20dp"
+                android:textSize="18sp"
+                android:text="这是测试"
+                android:background="@color/colorPrimary"></TextView>
+            <com.wxy.easyscrollerchartview.EasyScrollerChartView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/colorAccent"
+                android:id="@+id/esc_view">
+
+            </com.wxy.easyscrollerchartview.EasyScrollerChartView>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#ffffff"
+                android:gravity="center"
+                android:padding="20dp"
+                android:textSize="18sp"
+                android:text="这是测试"
+                android:background="@color/colorPrimary"></TextView>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
