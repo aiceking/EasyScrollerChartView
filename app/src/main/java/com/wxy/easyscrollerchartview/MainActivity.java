@@ -1,6 +1,8 @@
 package com.wxy.easyscrollerchartview;
 
 
+import android.app.Dialog;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
@@ -29,30 +31,35 @@ public class MainActivity extends AppCompatActivity {
         verticalCoordinatesList.add("20000");
         verticalCoordinatesList.add("25000");
         verticalCoordinatesList.add("30000");
-//        verticalCoordinatesList.add("35000");
-//        verticalCoordinatesList.add("40000");
-//        verticalCoordinatesList.add("45000");
-//        verticalCoordinatesList.add("50000");
-//        verticalCoordinatesList.add("55000");
-//        verticalCoordinatesList.add("60000");
-//        verticalCoordinatesList.add("65000");
-//        verticalCoordinatesList.add("70000");
-//        verticalCoordinatesList.add("75000");
-//        verticalCoordinatesList.add("80000");
-        List<String> horizontalCoordinatesList=new ArrayList<>();
-        horizontalCoordinatesList.add("1月");
-        horizontalCoordinatesList.add("2月");
-        horizontalCoordinatesList.add("3月");
-        horizontalCoordinatesList.add("4月");
-        horizontalCoordinatesList.add("5月");
-        horizontalCoordinatesList.add("6月");
-        horizontalCoordinatesList.add("7月");
-        horizontalCoordinatesList.add("8月");
-        horizontalCoordinatesList.add("9月");
-        horizontalCoordinatesList.add("10月");
-        horizontalCoordinatesList.add("11月");
-        horizontalCoordinatesList.add("12月");
-        escView.setHorizontalCoordinatesList(horizontalCoordinatesList);
         escView.setVerticalCoordinatesList(verticalCoordinatesList);
+        List<MyScrollerPointModel> myScrollerPointModelList=new ArrayList<>();
+        for (int i=0;i<13;i++){
+            MyScrollerPointModel myScrollerPointModel=new MyScrollerPointModel(i,((int) (Math.random() * 5 + 1))*5000);
+            myScrollerPointModelList.add(myScrollerPointModel);
+        }
+        escView.setScrollerPointModelList(myScrollerPointModelList);
+        escView.setVerticalMinAndMax(5000,30000);
+        escView.setHorizontalMinAndAverageWeight(0,1);
+        List<String> horizontalCoordinatesList_Scoll=new ArrayList<>();
+        horizontalCoordinatesList_Scoll.add("1月");
+        horizontalCoordinatesList_Scoll.add("2月");
+        horizontalCoordinatesList_Scoll.add("3月");
+        horizontalCoordinatesList_Scoll.add("4月");
+        horizontalCoordinatesList_Scoll.add("5月");
+        horizontalCoordinatesList_Scoll.add("6月");
+        horizontalCoordinatesList_Scoll.add("7月");
+        horizontalCoordinatesList_Scoll.add("8月");
+        horizontalCoordinatesList_Scoll.add("9月");
+        horizontalCoordinatesList_Scoll.add("10月");
+        horizontalCoordinatesList_Scoll.add("11月");
+        horizontalCoordinatesList_Scoll.add("12月");
+        escView.setHorizontalCoordinatesListScroll(horizontalCoordinatesList_Scoll,0.2f);
+//        List<String> horizontalCoordinatesList_noScoll=new ArrayList<>();
+//        horizontalCoordinatesList_noScoll.add("1月");
+//        horizontalCoordinatesList_noScoll.add("2月");
+//        horizontalCoordinatesList_noScoll.add("3月");
+//        horizontalCoordinatesList_noScoll.add("4月");
+//        horizontalCoordinatesList_noScoll.add("5月");
+//        escView.setHorizontalCoordinatesListNoScroll(horizontalCoordinatesList_noScoll);
     }
 }

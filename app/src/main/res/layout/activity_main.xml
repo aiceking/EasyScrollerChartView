@@ -25,7 +25,6 @@
             <com.wxy.easyscrollerchartviewlibrary.EasyScrollerChartView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/colorAccent"
                 android:id="@+id/esc_view">
             </com.wxy.easyscrollerchartviewlibrary.EasyScrollerChartView>
             <TextView
