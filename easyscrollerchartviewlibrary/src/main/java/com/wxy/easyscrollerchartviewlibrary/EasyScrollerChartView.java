@@ -164,24 +164,26 @@ public class EasyScrollerChartView extends View {
             Log.v(TAG,"scrollerPointModelList的size不能为0");
             return;
         }
+        Log.v(TAG,getScrollX()+"");
         /**先计算原点的位置*/
         originalPoint=calculateOriginalPoint();
         horizontalAverageWidth=(getWidth()-getPaddingRight()-originalPoint.x)*horizontalRatio;
         verticalRegionLength=originalPoint.y-getPaddingTop()-((originalPoint.y-getPaddingTop())/verticalCoordinatesList.size());
+
         /**画横坐标的线,如果可以滑动，默认横坐标的线要画满整个view的宽度，因为数据多，能表示出滑动还有数据，如果不可以滑动，则默认宽度不占满，并且留出一个横坐标平均区间的50%，看起来美观*/
         if (isScoll){
-            canvas.drawLine((float) originalPoint.x,(float) originalPoint.y,(float) originalPoint.x+(float) (horizontalAverageWidth*(scrollerPointModelList.size()))-horizontalAverageWidth/2,(float) originalPoint.y,horizontalLinePaint);
+            canvas.drawLine((float) originalPoint.x+getScrollX(),(float) originalPoint.y,(float) getWidth()-getPaddingRight()+getScrollX(),(float) originalPoint.y,horizontalLinePaint);
         }else {
             canvas.drawLine((float) originalPoint.x,(float) originalPoint.y,(float) (getWidth()-getPaddingRight()-((getWidth()-getPaddingRight()-originalPoint.x)/(horizontalCoordinatesList.size()+1)/4)),(float) originalPoint.y,horizontalLinePaint);
         }
         /**画纵坐标的线*/
-        canvas.drawLine((float) originalPoint.x,(float) originalPoint.y,(float) originalPoint.x,(float) getPaddingTop()+((originalPoint.y-getPaddingTop())/verticalCoordinatesList.size())-verticalTextPaint.getTextSize()/2,verticalLinePaint);
-        /**画横坐标的刻度值*/
-        drawHorizontalLineCoordinates(canvas,originalPoint);
+        canvas.drawLine((float) originalPoint.x+getScrollX(),(float) originalPoint.y,(float) originalPoint.x+getScrollX(),(float) getPaddingTop()+((originalPoint.y-getPaddingTop())/verticalCoordinatesList.size())-verticalTextPaint.getTextSize()/2,verticalLinePaint);
         /**画纵坐标的刻度值*/
         drawVerticalLineCoordinates(canvas,originalPoint);
-        /**画所有的点*/
 
+        /**画横坐标的刻度值*/
+        drawHorizontalLineCoordinates(canvas,originalPoint);
+        /**画所有的点*/
         drawAllPoint(canvas,originalPoint,horizontalAverageWidth,verticalRegionLength);
     }
 
@@ -213,7 +215,7 @@ public class EasyScrollerChartView extends View {
     /**画纵坐标的刻度值*/
     private void drawVerticalLineCoordinates(Canvas canvas, Point point) {
                 for (int i=0;i<verticalCoordinatesList.size();i++){
-                    canvas.drawText(verticalCoordinatesList.get(i),point.x-((point.x-getPaddingLeft())/4),
+                    canvas.drawText(verticalCoordinatesList.get(i),point.x+getScrollX()-((point.x-getPaddingLeft())/4),
                             point.y-(point.y-getPaddingTop())/verticalCoordinatesList.size()*i-getTextOffset(verticalTextPaint,verticalCoordinatesList.get(i)),
                             verticalTextPaint);
         }
