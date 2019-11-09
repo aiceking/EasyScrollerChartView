@@ -11,6 +11,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.Xfermode;
+import android.nfc.Tag;
 import android.support.annotation.Nullable;
 import android.text.Layout;
 import android.text.StaticLayout;
@@ -331,7 +332,7 @@ public class EasyScrollerChartView extends View {
                 }else{
                     getParent().requestDisallowInterceptTouchEvent(true);
                     if (getScrollX()<0||getScrollX()>=(scrollerPointModelList.size()*horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x)))){
-                        dx=dx/2;
+                        dx=dx/3;
                     }
                     scrollBy(-dx, 0);
                     invalidate();
@@ -350,7 +351,7 @@ public class EasyScrollerChartView extends View {
                     mVelocityTracker.computeCurrentVelocity(1000, ViewConfiguration.getMaximumFlingVelocity());
                     final int velocityX = (int)mVelocityTracker.getXVelocity(pointerId);
                     isFling=true;
-                    scroller.fling(getScrollX(),0,-velocityX,0,-getWidth(),(int) (scrollerPointModelList.size()*horizontalAverageWidth)+getWidth(),0,0);
+                    scroller.fling(getScrollX(),0,-velocityX,0,-(getWidth()-getPaddingRight()-originalPoint.x),(int) (scrollerPointModelList.size()*horizontalAverageWidth)+(getWidth()-getPaddingRight()-originalPoint.x),0,0);
                     invalidate();
                     if (mVelocityTracker != null) {
                         mVelocityTracker.clear();
@@ -364,28 +365,31 @@ public class EasyScrollerChartView extends View {
     @Override
     public void computeScroll() {
         super.computeScroll();
+
         if (scroller.computeScrollOffset()){
             if (isFling){
                 if (scroller.isFinished()){
-                    if (scroller.getCurrX()<=0){
+                    if (getScrollX()<=0){
                         isFling=false;
                         scroller.startScroll(getScrollX(),0,-getScrollX(),0,800);
                         invalidate();
-                    }else if (scroller.getCurrX()>=(scrollerPointModelList.size()*horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x)))){
+                    }
+                    else if (getScrollX()>=(scrollerPointModelList.size()*horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x)))){
                         isFling=false;
-                        scroller.startScroll(getScrollX(),0,(int) (scrollerPointModelList.size()*horizontalAverageWidth-(getWidth()-getPaddingRight()-originalPoint.x)-getScrollX()),0,800);
+                        scroller.startScroll(getScrollX(),0,(int) ( (scrollerPointModelList.size()*horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x)))-getScrollX()),0,800);
                         invalidate();
                     }
                 }else {
-                    if  (scroller.getCurrX()<=-(getWidth()-getPaddingRight()-originalPoint.x)/2){
+                    if  (getScrollX()<=-(getWidth()-getPaddingRight()-originalPoint.x)/2){
                         scroller.abortAnimation();
                         isFling=false;
                         scroller.startScroll(getScrollX(),0,-getScrollX(),0,800);
                         invalidate();
-                    }else if (scroller.getCurrX()>=(scrollerPointModelList.size()*horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x)))){
+
+                    }else if (getScrollX()>= (scrollerPointModelList.size()*horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x))+((getWidth()-getPaddingRight()-originalPoint.x))/2)){
                         scroller.abortAnimation();
                         isFling=false;
-                        scroller.startScroll(getScrollX(),0,(int) (scrollerPointModelList.size()*horizontalAverageWidth-(getWidth()-getPaddingRight()-originalPoint.x)-getScrollX()),0,800);
+                        scroller.startScroll(getScrollX(),0,(int) ( (scrollerPointModelList.size()*horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x)))-getScrollX()),0,800);
                         invalidate();
                     }else {
                         scrollTo(scroller.getCurrX(), scroller.getCurrY());
