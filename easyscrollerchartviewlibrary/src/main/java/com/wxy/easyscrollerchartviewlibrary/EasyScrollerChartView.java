@@ -54,6 +54,7 @@ public class EasyScrollerChartView extends View {
     private Scroller scroller;
     private float horizontalAverageWidth;
     private float verticalRegionLength=0;//纵坐标有限区间长度
+    private float verticalTextoffsetX;
     private Point originalPoint;
     public EasyScrollerChartView(Context context) {
         super(context);
@@ -164,7 +165,7 @@ public class EasyScrollerChartView extends View {
             Log.v(TAG,"scrollerPointModelList的size不能为0");
             return;
         }
-        Log.v(TAG,getScrollX()+"");
+
         /**先计算原点的位置*/
         originalPoint=calculateOriginalPoint();
         horizontalAverageWidth=(getWidth()-getPaddingRight()-originalPoint.x)*horizontalRatio;
@@ -180,7 +181,6 @@ public class EasyScrollerChartView extends View {
         canvas.drawLine((float) originalPoint.x+getScrollX(),(float) originalPoint.y,(float) originalPoint.x+getScrollX(),(float) getPaddingTop()+((originalPoint.y-getPaddingTop())/verticalCoordinatesList.size())-verticalTextPaint.getTextSize()/2,verticalLinePaint);
         /**画纵坐标的刻度值*/
         drawVerticalLineCoordinates(canvas,originalPoint);
-
         /**画横坐标的刻度值*/
         drawHorizontalLineCoordinates(canvas,originalPoint);
         /**画所有的点*/
@@ -215,7 +215,7 @@ public class EasyScrollerChartView extends View {
     /**画纵坐标的刻度值*/
     private void drawVerticalLineCoordinates(Canvas canvas, Point point) {
                 for (int i=0;i<verticalCoordinatesList.size();i++){
-                    canvas.drawText(verticalCoordinatesList.get(i),point.x+getScrollX()-((point.x-getPaddingLeft())/4),
+                    canvas.drawText(verticalCoordinatesList.get(i),point.x+getScrollX()-((int) verticalTextoffsetX),
                             point.y-(point.y-getPaddingTop())/verticalCoordinatesList.size()*i-getTextOffset(verticalTextPaint,verticalCoordinatesList.get(i)),
                             verticalTextPaint);
         }
@@ -231,14 +231,14 @@ public class EasyScrollerChartView extends View {
             horizontalRatio=1f/(float) (horizontalCoordinatesList.size()+1);
         }
         float HorizontalAverageTextwidth=(getWidth()-getPaddingRight()-point.x)*horizontalRatio*4/5;
-                for (int i=0;i<horizontalCoordinatesList.size();i++){
+        Rect horizontalRectOneText=getTextRect(horizontalTextPaint,horizontalCoordinatesList.get(0));
+        for (int i=0;i<horizontalCoordinatesList.size();i++){
                     StaticLayout sl = new StaticLayout(horizontalCoordinatesList.get(i),horizontalTextPaint,(int)HorizontalAverageTextwidth, Layout.Alignment.ALIGN_NORMAL,1.0f,0.0f,true);
                     canvas.save();
-                    canvas.translate((float) point.x+(getWidth()-getPaddingRight()-point.x)*horizontalRatio*(i+1)-(sl.getLineWidth(0)/2),(float) point.y+(getHeight()-getPaddingBottom()-point.y)/4);
+                    canvas.translate((float) point.x+(getWidth()-getPaddingRight()-point.x)*horizontalRatio*(i+1)-(sl.getLineWidth(0)/2),(float) point.y+(horizontalRectOneText.bottom-horizontalRectOneText.top));
                     sl.draw(canvas);
                     canvas.translate(0,0);
                     canvas.restore();
-//                    canvas.drawCircle((float) point.x+(getWidth()-getPaddingRight()-point.x)*horizontalRatio*(i+1),(float) point.y,20,horizontalTextPaint);
 
         }
     }
@@ -246,20 +246,6 @@ public class EasyScrollerChartView extends View {
     /**先计算原点的位置*/
     private Point calculateOriginalPoint() {
         Point point=new Point();
-        /**计算出原点需要向右偏移多少*/
-        //拿到纵坐标长度最长的字符串
-        String verticalMaxLengthString="";
-
-        for (int i=0;i<verticalCoordinatesList.size();i++){
-            if (verticalCoordinatesList.get(i).length()>verticalMaxLengthString.length()){
-                verticalMaxLengthString=verticalCoordinatesList.get(i);
-            }
-        }
-        // 默认纵坐标文字两边需要留白，所以增加一点
-        Rect rect=getTextRect(verticalTextPaint,verticalMaxLengthString);
-        point.x=(int) ((rect.right-rect.left)*2f+getPaddingLeft());
-
-
         /**计算出原点需要向上偏移多少*/
         if (!isScoll){
             /** 如果不可以滑动，横坐标平均区间由horizontalCoordinatesList.size()来决定*/
@@ -269,27 +255,35 @@ public class EasyScrollerChartView extends View {
         float HorizontalAverageTextwidth=(getWidth()-getPaddingRight()-point.x)*horizontalRatio*4/5;
         //拿到横坐标在换行后高度最大的高度
         point.y=0;
-                for (int i=0;i<horizontalCoordinatesList.size();i++){
-                    StaticLayout sl = new StaticLayout(horizontalCoordinatesList.get(i),horizontalTextPaint,(int)HorizontalAverageTextwidth, Layout.Alignment.ALIGN_NORMAL,1.0f,0.0f,true);
-                    if (sl.getHeight()>point.y){
-                        point.y=sl.getHeight();
-                    }
-                }
-        //默认横坐标文字的上下需要留白，所以这个高度要放大
-        point.y=point.y*2;
+        for (int i=0;i<horizontalCoordinatesList.size();i++){
+            StaticLayout sl = new StaticLayout(horizontalCoordinatesList.get(i),horizontalTextPaint,(int)HorizontalAverageTextwidth, Layout.Alignment.ALIGN_NORMAL,1.0f,0.0f,true);
+            if (sl.getHeight()>point.y){
+                point.y=sl.getHeight();
+            }
+        }
+        //默认横坐标文字的上下需要留白，所以这个高度要加大,上下留出一个字符大小的距离
+        Rect horizontalRectOneText=getTextRect(horizontalTextPaint,horizontalCoordinatesList.get(0));
+        point.y=point.y+(horizontalRectOneText.bottom-horizontalRectOneText.top)*2;
         //矫正至Canvas所在的坐标
         point.y=getHeight()-getPaddingBottom()-point.y;
 
-        //这里要修正计算出原点需要向右偏移多少，因为防止数据过多之后产生上下重叠现象
-        if (horizontalCoordinatesList!=null){
-            if (horizontalCoordinatesList.size()>0){
+        //这里要修正纵坐标刻度值的textSize，因为防止数据过多之后产生上下重叠现象
         int verticalAverage=(point.y-getPaddingTop())/verticalCoordinatesList.size();
         if (verticalTextPaint.getTextSize()>=verticalAverage){
             verticalTextPaint.setTextSize(verticalAverage*3/4);
         }
+        /**计算出原点需要向右偏移多少*/
+        //拿到纵坐标长度最长的字符串
+        String verticalMaxLengthString="";
+        for (int i=0;i<verticalCoordinatesList.size();i++){
+            if (verticalCoordinatesList.get(i).length()>verticalMaxLengthString.length()){
+                verticalMaxLengthString=verticalCoordinatesList.get(i);
             }
         }
-
+        // 默认纵坐标文字两边需要留白，所以增加一点,默认增加文字长度的一半
+        Rect rect=getTextRect(verticalTextPaint,verticalMaxLengthString);
+        verticalTextoffsetX=(rect.bottom-rect.top)*2;
+        point.x=(int) ((rect.right-rect.left)+(rect.bottom-rect.top)*4+getPaddingLeft());
         return point;
     }
     public Rect getTextRect(Paint paint, String text){
