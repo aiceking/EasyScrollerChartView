@@ -1,4 +1,4 @@
-package com.wxy.easyscrollerchartview;
+package com.wxy.easyscrollerchartview.model;
 
 import com.wxy.easyscrollerchartviewlibrary.model.ScrollerPointModel;
 

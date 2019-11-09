@@ -12,6 +12,8 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.Xfermode;
 import android.nfc.Tag;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.text.Layout;
 import android.text.StaticLayout;
@@ -29,34 +31,38 @@ import com.wxy.easyscrollerchartviewlibrary.model.ScrollerPointModel;
 import java.util.List;
 
 
-public class EasyScrollerChartView extends View {
-    private final String TAG = getClass().getName();
+public abstract class EasyScrollerChartView extends View {
+    protected final String TAG = getClass().getName();
     //设置默认的宽和高,比例为4:3
-    private static final int DEFUALT_VIEW_WIDTH=400;
-    private static final int DEFUALT_VIEW_HEIGHT=300;
-    private Paint horizontalLinePaint;
-    private Paint verticalLinePaint;
-    private TextPaint horizontalTextPaint ;
-    private TextPaint verticalTextPaint;
-    private TextPaint pointTextPaint;
-    private float verticalMin= 0;//纵坐标最小值
-    private float verticalMax= 0;//纵坐标最大值
-    private float horizontalMin= 0;//横坐标最小值
-    private float horizontalAverageWeight= 0;//横坐标每个平均区间代表多少值
-    private float horizontalRatio=0.2f;
-    private List<String> horizontalCoordinatesList;
-    private List<String> verticalCoordinatesList;
-    private List<? extends ScrollerPointModel> scrollerPointModelList;
-    private boolean isScoll;
-    private int mLastX = 0;
-    private boolean isFling;
-    private int downX=0,downY=0;
-    private VelocityTracker mVelocityTracker;
-    private Scroller scroller;
-    private float horizontalAverageWidth;
-    private float verticalRegionLength=0;//纵坐标有限区间长度
-    private float verticalTextoffsetX;
-    private Point originalPoint;
+    protected static final int DEFUALT_VIEW_WIDTH=400;
+    protected static final int DEFUALT_VIEW_HEIGHT=300;
+    protected Paint horizontalLinePaint;
+    protected Paint verticalLinePaint;
+    protected TextPaint horizontalTextPaint ;
+    protected TextPaint verticalTextPaint;
+    protected TextPaint pointTextPaint;
+    protected float verticalMin= 0;//纵坐标最小值
+    protected float verticalMax= 0;//纵坐标最大值
+    protected float horizontalMin= 0;//横坐标最小值
+    protected float horizontalAverageWeight= 0;//横坐标每个平均区间代表多少值
+    protected float horizontalRatio=0.2f;
+    protected List<String> horizontalCoordinatesList;
+    protected List<String> verticalCoordinatesList;
+    protected List<? extends ScrollerPointModel> scrollerPointModelList;
+    protected boolean isScoll;
+    protected int mLastX = 0;
+    protected boolean isFling;
+    protected int downX=0,downY=0;
+    protected VelocityTracker mVelocityTracker;
+    protected Scroller scroller;
+    protected float horizontalAverageWidth;
+    protected float verticalRegionLength=0;//纵坐标有限区间长度
+    protected float verticalTextoffsetX;
+    protected Point originalPoint;
+    protected float saveInstanceStateScrollX;
+
+
+    private onClickListener onClickListener;
     public EasyScrollerChartView(Context context) {
         super(context);
     }
@@ -97,6 +103,26 @@ public class EasyScrollerChartView extends View {
 
     public EasyScrollerChartView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+    }
+    @Nullable
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("superState", super.onSaveInstanceState());
+        bundle.putFloat("getScrollX", (float) getScrollX()/(getWidth()-getPaddingRight()-originalPoint.x));
+        Log.v("onSaveInstanceState=",(float) getScrollX()/(float)getWidth()+"");
+        return bundle;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        if (state instanceof Bundle) {
+            Bundle bundle = (Bundle) state;
+            saveInstanceStateScrollX=bundle.getFloat("getScrollX");
+            state = bundle.getParcelable("superState");
+            super.onRestoreInstanceState(state);
+        }
+
     }
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -166,55 +192,54 @@ public class EasyScrollerChartView extends View {
             Log.v(TAG,"scrollerPointModelList的size不能为0");
             return;
         }
-
+        if (verticalMin==verticalMax){
+            Log.v(TAG,"纵坐标区间最大最小值不能相等");
+            return;
+        }
+        if (verticalMin>=verticalMax){
+            Log.v(TAG,"纵坐标区间最大值必须大于最小值");
+            return;
+        }
         /**先计算原点的位置*/
         originalPoint=calculateOriginalPoint();
         horizontalAverageWidth=(getWidth()-getPaddingRight()-originalPoint.x)*horizontalRatio;
         verticalRegionLength=originalPoint.y-getPaddingTop()-((originalPoint.y-getPaddingTop())/verticalCoordinatesList.size());
-
         /**画横坐标的线,如果可以滑动，默认横坐标的线要画满整个view的宽度，因为数据多，能表示出滑动还有数据，如果不可以滑动，则默认宽度不占满，并且留出一个横坐标平均区间的50%，看起来美观*/
+        drawHorizontalLine(canvas);
+        /**画纵坐标的线*/
+        drawVerticalLine(canvas);
+       /**画纵坐标的刻度值*/
+        drawVerticalLineCoordinates(canvas,originalPoint);
+        /**画横坐标的刻度值*/
+        drawHorizontalLineCoordinates(canvas,originalPoint);
+        /**画所有的点*/
+        drawContent(canvas,originalPoint,horizontalAverageWidth,verticalRegionLength,new Rect(originalPoint.x+getScrollX(),getPaddingTop(),getWidth()-getPaddingRight()+getScrollX(),getHeight()-getPaddingBottom()));
+        if (saveInstanceStateScrollX!=0){
+            scrollTo((int)(saveInstanceStateScrollX*(getWidth()-getPaddingRight()-originalPoint.x)),0);
+            saveInstanceStateScrollX=0;
+        }
+    }
+    /**画横坐标的线*/
+    protected void drawHorizontalLine(Canvas canvas) {
         if (isScoll){
             canvas.drawLine((float) originalPoint.x+getScrollX(),(float) originalPoint.y,(float) getWidth()-getPaddingRight()+getScrollX(),(float) originalPoint.y,horizontalLinePaint);
         }else {
             canvas.drawLine((float) originalPoint.x,(float) originalPoint.y,(float) (getWidth()-getPaddingRight()-((getWidth()-getPaddingRight()-originalPoint.x)/(horizontalCoordinatesList.size()+1)/4)),(float) originalPoint.y,horizontalLinePaint);
         }
-        /**画纵坐标的线*/
-        canvas.drawLine((float) originalPoint.x+getScrollX(),(float) originalPoint.y,(float) originalPoint.x+getScrollX(),(float) getPaddingTop()+((originalPoint.y-getPaddingTop())/verticalCoordinatesList.size())-verticalTextPaint.getTextSize()/2,verticalLinePaint);
-        /**画纵坐标的刻度值*/
-        drawVerticalLineCoordinates(canvas,originalPoint);
-        /**画横坐标的刻度值*/
-        drawHorizontalLineCoordinates(canvas,originalPoint);
-        /**画所有的点*/
-        drawAllPoint(canvas,originalPoint,horizontalAverageWidth,verticalRegionLength);
     }
 
-    private void drawAllPoint(Canvas canvas, Point point, float horizontalAverageWidth, float verticalRegionLength) {
-        Path path=new Path();
-        for (int i=0;i<scrollerPointModelList.size();i++ ){
-            float x=((scrollerPointModelList.get(i).getX()-horizontalMin)/horizontalAverageWeight*horizontalAverageWidth)+point.x;
-            float y=point.y-((scrollerPointModelList.get(i).getY()-verticalMin)/(verticalMax-verticalMin)* verticalRegionLength);
-            pointTextPaint.setColor(Color.BLUE);
-            pointTextPaint.setStrokeWidth(5);
-            pointTextPaint.setStyle(Paint.Style.STROKE);
-            if (i==0){
-                path.moveTo(x,y);
-            }else {
-                path.lineTo(x,y);
-            }
-            canvas.drawPath(path,pointTextPaint);
-        }
-        for (int i=0;i<scrollerPointModelList.size();i++ ){
-            float x=((scrollerPointModelList.get(i).getX()-horizontalMin)/horizontalAverageWeight*horizontalAverageWidth)+point.x;
-            float y=point.y-((scrollerPointModelList.get(i).getY()-verticalMin)/(verticalMax-verticalMin)* verticalRegionLength);
-            pointTextPaint.setColor(Color.RED);
-            pointTextPaint.setStyle(Paint.Style.FILL);
-            canvas.drawCircle(x,
-                    y,10,pointTextPaint);
-        }
+    /**画纵坐标的线*/
+    protected void drawVerticalLine(Canvas canvas) {
+
+        canvas.drawLine((float) originalPoint.x+getScrollX(),(float) originalPoint.y,(float) originalPoint.x+getScrollX(),(float) getPaddingTop()+((originalPoint.y-getPaddingTop())/verticalCoordinatesList.size())-verticalTextPaint.getTextSize()/2,verticalLinePaint);
+
     }
+
+    public abstract void drawContent(Canvas canvas, Point point,float horizontalAverageWidth, float verticalRegionLength,Rect rect);
+
 
     /**画纵坐标的刻度值*/
-    private void drawVerticalLineCoordinates(Canvas canvas, Point point) {
+    protected void drawVerticalLineCoordinates(Canvas canvas, Point point) {
                 for (int i=0;i<verticalCoordinatesList.size();i++){
                     canvas.drawText(verticalCoordinatesList.get(i),point.x+getScrollX()-((int) verticalTextoffsetX),
                             point.y-(point.y-getPaddingTop())/verticalCoordinatesList.size()*i-getTextOffset(verticalTextPaint,verticalCoordinatesList.get(i)),
@@ -225,28 +250,44 @@ public class EasyScrollerChartView extends View {
 
     /**画横坐标的刻度值*/
 
-    private void drawHorizontalLineCoordinates(Canvas canvas,Point point) {
+    protected void drawHorizontalLineCoordinates(Canvas canvas,Point point) {
         /** 默认横坐标文字两边需要留白，避免相邻的横坐标值挨在一起，所以在现有的宽度上减少一点*/
         if (!isScoll){
             /** 如果不可以滑动，横坐标平均区间由horizontalCoordinatesList.size()来决定*/
             horizontalRatio=1f/(float) (horizontalCoordinatesList.size()+1);
         }
-        float HorizontalAverageTextwidth=(getWidth()-getPaddingRight()-point.x)*horizontalRatio*4/5;
+         float HorizontalAverageTextwidth=(getWidth()-getPaddingRight()-point.x)*horizontalRatio*4/5;
+        canvas.save();
+        canvas.clipRect(new Rect(point.x+getScrollX(),getPaddingTop(),getWidth()-getPaddingRight()+getScrollX(),getHeight()-getPaddingBottom()));
         Rect horizontalRectOneText=getTextRect(horizontalTextPaint,horizontalCoordinatesList.get(0));
         for (int i=0;i<horizontalCoordinatesList.size();i++){
+
                     StaticLayout sl = new StaticLayout(horizontalCoordinatesList.get(i),horizontalTextPaint,(int)HorizontalAverageTextwidth, Layout.Alignment.ALIGN_NORMAL,1.0f,0.0f,true);
-                    canvas.save();
+                                        canvas.save();
                     canvas.translate((float) point.x+(getWidth()-getPaddingRight()-point.x)*horizontalRatio*(i+1)-(sl.getLineWidth(0)/2),(float) point.y+(horizontalRectOneText.bottom-horizontalRectOneText.top));
                     sl.draw(canvas);
                     canvas.translate(0,0);
                     canvas.restore();
 
         }
+        canvas.restore();
     }
 
     /**先计算原点的位置*/
     private Point calculateOriginalPoint() {
         Point point=new Point();
+        /**计算出原点需要向右偏移多少*/
+        //拿到纵坐标长度最长的字符串
+        String verticalMaxLengthString="";
+        for (int i=0;i<verticalCoordinatesList.size();i++){
+            if (verticalCoordinatesList.get(i).length()>verticalMaxLengthString.length()){
+                verticalMaxLengthString=verticalCoordinatesList.get(i);
+            }
+        }
+        // 默认纵坐标文字两边需要留白，所以增加一点,默认增加文字长度的一半
+        Rect rect=getTextRect(verticalTextPaint,verticalMaxLengthString);
+        verticalTextoffsetX=(rect.bottom-rect.top)*2;
+        point.x=(int) ((rect.right-rect.left)+(rect.bottom-rect.top)*4+getPaddingLeft());
         /**计算出原点需要向上偏移多少*/
         if (!isScoll){
             /** 如果不可以滑动，横坐标平均区间由horizontalCoordinatesList.size()来决定*/
@@ -273,18 +314,7 @@ public class EasyScrollerChartView extends View {
         if (verticalTextPaint.getTextSize()>=verticalAverage){
             verticalTextPaint.setTextSize(verticalAverage*3/4);
         }
-        /**计算出原点需要向右偏移多少*/
-        //拿到纵坐标长度最长的字符串
-        String verticalMaxLengthString="";
-        for (int i=0;i<verticalCoordinatesList.size();i++){
-            if (verticalCoordinatesList.get(i).length()>verticalMaxLengthString.length()){
-                verticalMaxLengthString=verticalCoordinatesList.get(i);
-            }
-        }
-        // 默认纵坐标文字两边需要留白，所以增加一点,默认增加文字长度的一半
-        Rect rect=getTextRect(verticalTextPaint,verticalMaxLengthString);
-        verticalTextoffsetX=(rect.bottom-rect.top)*2;
-        point.x=(int) ((rect.right-rect.left)+(rect.bottom-rect.top)*4+getPaddingLeft());
+
         return point;
     }
     public Rect getTextRect(Paint paint, String text){
@@ -302,10 +332,12 @@ public class EasyScrollerChartView extends View {
     public boolean onTouchEvent(MotionEvent event) {
         int x = (int) event.getX();
         int y = (int) event.getY();
+        if (isScoll){
         if (mVelocityTracker == null) {
             mVelocityTracker = VelocityTracker.obtain();
         }
         mVelocityTracker.addMovement(event);
+        }
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 downX=x;
@@ -317,29 +349,40 @@ public class EasyScrollerChartView extends View {
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
-                int dx = x - mLastX;
-                int scrollX=x-downX;
-                int scrollY=y-downY;
-                if(Math.abs(scrollX)<Math.abs(scrollY)){
-                    if (getScrollX()<0){
-                        scroller.startScroll(getScrollX(),0,-getScrollX(),0,800);
-                        invalidate();
-                    }else if (getScrollX()>=(scrollerPointModelList.size()*horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x)))){
-                        scroller.startScroll(getScrollX(),0,(int) (scrollerPointModelList.size()*horizontalAverageWidth-(getWidth()-getPaddingRight()-originalPoint.x)-getScrollX()),0,800);
+                if (isScoll) {
+                    int dx = x - mLastX;
+                    int scrollX = x - downX;
+                    int scrollY = y - downY;
+                    if (Math.abs(scrollX) < Math.abs(scrollY)) {
+                        if (getScrollX() < 0) {
+                            scroller.startScroll(getScrollX(), 0, -getScrollX(), 0, 800);
+                            invalidate();
+                        } else if (getScrollX() >= (scrollerPointModelList.size() * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
+                            scroller.startScroll(getScrollX(), 0, (int) (scrollerPointModelList.size() * horizontalAverageWidth - (getWidth() - getPaddingRight() - originalPoint.x) - getScrollX()), 0, 800);
+                            invalidate();
+                        }
+                        getParent().requestDisallowInterceptTouchEvent(false);
+                    } else {
+                        getParent().requestDisallowInterceptTouchEvent(true);
+                        if (getScrollX() < 0 || getScrollX() >= (scrollerPointModelList.size() * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
+                            dx = dx / 3;
+                        }
+                        scrollBy(-dx, 0);
                         invalidate();
                     }
-                    getParent().requestDisallowInterceptTouchEvent(false);
-                }else{
-                    getParent().requestDisallowInterceptTouchEvent(true);
-                    if (getScrollX()<0||getScrollX()>=(scrollerPointModelList.size()*horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x)))){
-                        dx=dx/3;
-                    }
-                    scrollBy(-dx, 0);
-                    invalidate();
                 }
-
                 break;
             case MotionEvent.ACTION_UP:
+                int clickX = downX - (int) event.getX();
+                int clickY = downY - (int) event.getY();
+                if (Math.abs(clickX)<= ViewConfiguration.get(getContext()).getScaledTouchSlop()&&
+                        Math.abs(clickY)<= ViewConfiguration.get(getContext()).getScaledTouchSlop()){
+                    if (onClickListener!=null){
+                        onClickListener.onClick(((event.getX()+getScrollX())-originalPoint.x)/horizontalAverageWidth*horizontalAverageWeight+horizontalMin,
+                                (originalPoint.y- event.getY())/verticalRegionLength*(verticalMax-verticalMin)+verticalMin);
+                    }
+                }else {
+                if (isScoll){
                 if (getScrollX()<0){
                     scroller.startScroll(getScrollX(),0,-getScrollX(),0,800);
                     invalidate();
@@ -357,6 +400,8 @@ public class EasyScrollerChartView extends View {
                         mVelocityTracker.clear();
                     }
                 }
+                }
+                }
                 break;
         }
         mLastX = x;
@@ -365,7 +410,6 @@ public class EasyScrollerChartView extends View {
     @Override
     public void computeScroll() {
         super.computeScroll();
-
         if (scroller.computeScrollOffset()){
             if (isFling){
                 if (scroller.isFinished()){
@@ -468,4 +512,14 @@ public class EasyScrollerChartView extends View {
         invalidate();
     }
 
+    public EasyScrollerChartView.onClickListener getOnClickListener() {
+        return onClickListener;
+    }
+
+    public void setOnClickListener(EasyScrollerChartView.onClickListener onClickListener) {
+        this.onClickListener = onClickListener;
+    }
+   public interface onClickListener{
+       void onClick(float x,float y);
+   }
 }

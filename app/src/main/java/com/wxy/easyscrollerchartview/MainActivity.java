@@ -1,11 +1,12 @@
 package com.wxy.easyscrollerchartview;
 
 
-import android.app.Dialog;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
+import com.wxy.easyscrollerchartview.model.MyScrollerPointModel;
+import com.wxy.easyscrollerchartview.view.MyScrollerChartView;
 import com.wxy.easyscrollerchartviewlibrary.EasyScrollerChartView;
 
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ import butterknife.ButterKnife;
 public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.esc_view)
-    EasyScrollerChartView escView;
+    MyScrollerChartView escView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,15 +37,23 @@ public class MainActivity extends AppCompatActivity {
         List<String> horizontalCoordinatesList_Scoll=new ArrayList<>();
         for (int i=0;i<24;i++){
             if (i<23){
-            horizontalCoordinatesList_Scoll.add(i+1+":00");
+                    horizontalCoordinatesList_Scoll.add(i+1+":00");
             }
-            MyScrollerPointModel myScrollerPointModel=new MyScrollerPointModel(i,((int) (Math.random() * 5 + 1))*5000);
-            myScrollerPointModelList.add(myScrollerPointModel);
+                MyScrollerPointModel myScrollerPointModel=new MyScrollerPointModel(i,((int) (Math.random() * 5 + 1))*5000);
+                myScrollerPointModelList.add(myScrollerPointModel);
         }
         escView.setScrollerPointModelList(myScrollerPointModelList);
         escView.setVerticalMinAndMax(5000,30000);
         escView.setHorizontalMinAndAverageWeight(0,1);
         escView.setHorizontalCoordinatesListScroll(horizontalCoordinatesList_Scoll,0.2f);
+        escView.setOnClickListener(new EasyScrollerChartView.onClickListener() {
+            @Override
+            public void onClick(float x, float y) {
+                Log.v("x==",x+"");
+                Log.v("y==",y+"");
+
+            }
+        });
 //        List<String> horizontalCoordinatesList_noScoll=new ArrayList<>();
 //        horizontalCoordinatesList_noScoll.add("1月");
 //        horizontalCoordinatesList_noScoll.add("2月");
