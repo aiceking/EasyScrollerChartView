@@ -60,8 +60,7 @@ public abstract class EasyScrollerChartView extends View {
     protected float verticalTextoffsetX;
     protected Point originalPoint;
     protected float saveInstanceStateScrollX;
-
-
+    protected float scrollSideDamping=0.5f;
     private onClickListener onClickListener;
     public EasyScrollerChartView(Context context) {
         super(context);
@@ -365,7 +364,7 @@ public abstract class EasyScrollerChartView extends View {
                     } else {
                         getParent().requestDisallowInterceptTouchEvent(true);
                         if (getScrollX() < 0 || getScrollX() >= (scrollerPointModelList.size() * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
-                            dx = dx / 3;
+                            dx =(int) (dx * scrollSideDamping);
                         }
                         scrollBy(-dx, 0);
                         invalidate();
@@ -518,6 +517,13 @@ public abstract class EasyScrollerChartView extends View {
 
     public void setOnClickListener(EasyScrollerChartView.onClickListener onClickListener) {
         this.onClickListener = onClickListener;
+    }
+    public float getScrollSideDamping() {
+        return scrollSideDamping;
+    }
+
+    public void setScrollSideDamping(float scrollSideDamping) {
+        this.scrollSideDamping = scrollSideDamping;
     }
    public interface onClickListener{
        void onClick(float x,float y);
