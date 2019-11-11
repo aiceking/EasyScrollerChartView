@@ -20,10 +20,12 @@ import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.widget.ScrollView;
 import android.widget.Scroller;
 
 import com.wxy.easyscrollerchartviewlibrary.model.ScrollerPointModel;
@@ -50,7 +52,7 @@ public abstract class EasyScrollerChartView extends View {
     protected List<String> verticalCoordinatesList;
     protected List<? extends ScrollerPointModel> scrollerPointModelList;
     protected boolean isScoll;
-    protected int mLastX = 0;
+    protected int mLastX = 0,mLastY=0;
     protected boolean isFling;
     protected int downX=0,downY=0;
     protected VelocityTracker mVelocityTracker;
@@ -62,6 +64,8 @@ public abstract class EasyScrollerChartView extends View {
     protected float saveInstanceStateScrollX;
     protected float scrollSideDamping=0.5f;
     private onClickListener onClickListener;
+    private int mActivePointerId;
+    private  final int INVALID_POINTER = -1;
     public EasyScrollerChartView(Context context) {
         super(context);
     }
@@ -327,32 +331,48 @@ public abstract class EasyScrollerChartView extends View {
         float offset=(bounds.top+bounds.bottom)/2;
         return offset;
     }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        int x = (int) event.getX();
-        int y = (int) event.getY();
+
         if (isScoll){
         if (mVelocityTracker == null) {
             mVelocityTracker = VelocityTracker.obtain();
         }
         mVelocityTracker.addMovement(event);
         }
-        switch (event.getAction()) {
+        switch (event.getAction()& MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
-                downX=x;
-                downY=y;
+                mActivePointerId=event.getPointerId(0);
+                downX=(int) event.getX();
+                downY=(int) event.getY();
                 getParent().requestDisallowInterceptTouchEvent(true);
                 if (!scroller.isFinished()) {
                     isFling=false;
                     scroller.abortAnimation();
                 }
                 break;
+            case MotionEvent.ACTION_POINTER_DOWN:
+                //如果有新的手指按下，就直接把它当作当前活跃的指针
+                final int index = event.getActionIndex();
+                mActivePointerId = event.getPointerId(index);
+                //并且刷新上一次记录的旧坐标值
+                downX=(int) event.getX(index);
+                downY=(int) event.getY(index);
+                break;
+            case MotionEvent.ACTION_POINTER_UP:
+                onSecondaryPointerUp(event);
+                break;
             case MotionEvent.ACTION_MOVE:
                 if (isScoll) {
-                    int dx = x - mLastX;
-                    int scrollX = x - downX;
-                    int scrollY = y - downY;
-                    if (Math.abs(scrollX) < Math.abs(scrollY)) {
+                    int activePointerIndex = event.findPointerIndex(mActivePointerId);
+                    if (activePointerIndex == INVALID_POINTER) {
+                        break;
+                    }
+                    int dx = (int) event.getX(activePointerIndex) - mLastX;
+                    int dy = (int) event.getY(activePointerIndex) - mLastY;
+                    if (Math.abs(dx) < Math.abs(dy)) {
+                        getParent().requestDisallowInterceptTouchEvent(false);
                         if (getScrollX() < 0) {
                             scroller.startScroll(getScrollX(), 0, -getScrollX(), 0, 800);
                             invalidate();
@@ -360,7 +380,6 @@ public abstract class EasyScrollerChartView extends View {
                             scroller.startScroll(getScrollX(), 0, (int) (scrollerPointModelList.size() * horizontalAverageWidth - (getWidth() - getPaddingRight() - originalPoint.x) - getScrollX()), 0, 800);
                             invalidate();
                         }
-                        getParent().requestDisallowInterceptTouchEvent(false);
                     } else {
                         getParent().requestDisallowInterceptTouchEvent(true);
                         if (getScrollX() < 0 || getScrollX() >= (scrollerPointModelList.size() * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
@@ -371,7 +390,16 @@ public abstract class EasyScrollerChartView extends View {
                     }
                 }
                 break;
+            case MotionEvent.ACTION_CANCEL:
+                if (getScrollX() < 0) {
+                    scroller.startScroll(getScrollX(), 0, -getScrollX(), 0, 800);
+                    invalidate();
+                } else if (getScrollX() >= (scrollerPointModelList.size() * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
+                    scroller.startScroll(getScrollX(), 0, (int) (scrollerPointModelList.size() * horizontalAverageWidth - (getWidth() - getPaddingRight() - originalPoint.x) - getScrollX()), 0, 800);
+                    invalidate();
+                }
             case MotionEvent.ACTION_UP:
+                mActivePointerId = INVALID_POINTER;
                 int clickX = downX - (int) event.getX();
                 int clickY = downY - (int) event.getY();
                 if (Math.abs(clickX)<= ViewConfiguration.get(getContext()).getScaledTouchSlop()&&
@@ -397,14 +425,38 @@ public abstract class EasyScrollerChartView extends View {
                     invalidate();
                     if (mVelocityTracker != null) {
                         mVelocityTracker.clear();
+                        mVelocityTracker = null;
                     }
                 }
                 }
                 }
                 break;
         }
-        mLastX = x;
+        if (mActivePointerId != INVALID_POINTER) {
+            mLastX = (int) event.getX(event.findPointerIndex(mActivePointerId));
+            mLastY=(int) event.getY(event.findPointerIndex(mActivePointerId));
+        }else {
+            mLastX = (int) event.getX();
+            mLastY=(int) event.getY();
+        }
+
         return true;
+    }
+    private void onSecondaryPointerUp(MotionEvent ev) {
+         int pointerIndex = ev.getActionIndex();
+         int pointerId = ev.getPointerId(pointerIndex);
+        //如果抬起的那根手指，刚好是当前活跃的手指，那么
+        if (pointerId == mActivePointerId) {
+            //另选一根手指，并把它标记为活跃（皇帝驾崩，太子登基）
+             int newPointerIndex = pointerIndex == 0 ? 1 : 0;
+            mActivePointerId = ev.getPointerId(newPointerIndex);
+            //把上一次记录的坐标，更新为新手指的当前坐标
+            downX = (int) ev.getX(newPointerIndex);
+            downY =(int)  ev.getY(newPointerIndex);
+            if (mVelocityTracker != null) {
+                mVelocityTracker.clear();
+            }
+        }
     }
     @Override
     public void computeScroll() {
