@@ -237,8 +237,8 @@ public abstract class EasyScrollerChartView extends View {
         minX=(int) Math.ceil(getScrollX()/horizontalAverageWidth*horizontalAverageWeight)-1;
         minX_horizontalCoordinates=(int) Math.ceil(getScrollX()/horizontalAverageWidth)-1;
         //一开始没滑动前，画了1/getHorizontalRatio()+1个点，然后用getScrollX()/horizontalAverageWidth向上取整得到滑动过的区域有几个点，然后再画的时候补充进来
-        maxX=(int) (1/getHorizontalRatio()*horizontalAverageWeight+1)+(int) Math.ceil(getScrollX()/horizontalAverageWidth*horizontalAverageWeight);
-        maxX_horizontalCoordinates=(int) (1/getHorizontalRatio()+1)+(int) Math.ceil(getScrollX()/horizontalAverageWidth);
+        maxX=(int) Math.ceil((1/getHorizontalRatio())*horizontalAverageWeight+1)+(int) Math.ceil(getScrollX()/horizontalAverageWidth*horizontalAverageWeight);
+        maxX_horizontalCoordinates=(int) Math.ceil((1/getHorizontalRatio()+1))+(int) Math.ceil(getScrollX()/horizontalAverageWidth);
         //数据修正
         minX=minX>=0?minX:0;
         maxX=maxX<=scrollerPointModelList.size()?maxX:scrollerPointModelList.size();

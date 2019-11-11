@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         escView.setScrollerPointModelList(myScrollerPointModelList);
         escView.setVerticalMinAndMax(5000,30000);
         escView.setHorizontalMinAndAverageWeight(0,1);
-        escView.setHorizontalCoordinatesListScroll(horizontalCoordinatesList_Scoll,0.2f);
+        escView.setHorizontalCoordinatesListScroll(horizontalCoordinatesList_Scoll,0.3f);
 //        escView.setHorizontalCoordinatesListNoScroll(horizontalCoordinatesList_Scoll);
         escView.setScrollSideDamping(0.5f);
         escView.setOnClickListener(new EasyScrollerChartView.onClickListener() {
