@@ -35,11 +35,10 @@ public class MainActivity extends AppCompatActivity {
         escView.setVerticalCoordinatesList(verticalCoordinatesList);
         List<MyScrollerPointModel> myScrollerPointModelList=new ArrayList<>();
         List<String> horizontalCoordinatesList_Scoll=new ArrayList<>();
-        for (int i=0;i<24;i++){
-            if (i<23){
-                    horizontalCoordinatesList_Scoll.add(i+1+":00");
-            }
-                MyScrollerPointModel myScrollerPointModel=new MyScrollerPointModel(i,((int) (Math.random() * 5 + 1))*5000);
+        for (int i=0;i<366;i++){
+                    if (i<365){
+                    horizontalCoordinatesList_Scoll.add("第\n"+(i+1)+"\n天");}
+                MyScrollerPointModel myScrollerPointModel=new MyScrollerPointModel(i,((int) (Math.random() * 5 + 1))*5000,"test"+(i+1));
                 myScrollerPointModelList.add(myScrollerPointModel);
         }
         escView.setScrollerPointModelList(myScrollerPointModelList);

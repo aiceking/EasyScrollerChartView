@@ -9,8 +9,13 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 
+import com.wxy.easyscrollerchartview.model.MyScrollerPointModel;
 import com.wxy.easyscrollerchartviewlibrary.EasyScrollerChartView;
+import com.wxy.easyscrollerchartviewlibrary.model.ScrollerPointModel;
+
+import java.util.List;
 
 public class MyScrollerChartView extends EasyScrollerChartView {
     public MyScrollerChartView(Context context) {
@@ -26,17 +31,20 @@ public class MyScrollerChartView extends EasyScrollerChartView {
     }
 
     @Override
-    public void drawContent(Canvas canvas, Point originalPoint, float horizontalAverageWidth, float verticalRegionLength, Rect rect) {
+    public void drawContent(Canvas canvas, Point originalPoint, List<? extends ScrollerPointModel> scrollerPointModelList,
+                            int minX, int maxX,
+                            float horizontalAverageWidth, float horizontalAverageWeight, float horizontalMin,
+                            float verticalRegionLength,float verticalMin,float verticalMax, Rect rect) {
         Path path=new Path();
         canvas.save();
         canvas.clipRect(rect);
-        for (int i=0;i<scrollerPointModelList.size();i++ ){
+        for (int i=minX;i<maxX;i++ ){
             float x=((scrollerPointModelList.get(i).getX()-horizontalMin)/horizontalAverageWeight*horizontalAverageWidth)+originalPoint.x;
             float y=originalPoint.y-((scrollerPointModelList.get(i).getY()-verticalMin)/(verticalMax-verticalMin)* verticalRegionLength);
             pointTextPaint.setColor(Color.BLUE);
             pointTextPaint.setStrokeWidth(5);
             pointTextPaint.setStyle(Paint.Style.STROKE);
-            if (i==0){
+            if (i==minX){
                 path.moveTo(x,y);
             }else {
                 path.lineTo(x,y);
@@ -46,7 +54,7 @@ public class MyScrollerChartView extends EasyScrollerChartView {
         canvas.restore();
         canvas.save();
         canvas.clipRect(new Rect(rect.left-10,rect.top,rect.right,rect.bottom));
-        for (int i=0;i<scrollerPointModelList.size();i++ ){
+        for (int i=minX;i<maxX;i++ ){
             float x=((scrollerPointModelList.get(i).getX()-horizontalMin)/horizontalAverageWeight*horizontalAverageWidth)+originalPoint.x;
             float y=originalPoint.y-((scrollerPointModelList.get(i).getY()-verticalMin)/(verticalMax-verticalMin)* verticalRegionLength);
             pointTextPaint.setColor(Color.RED);
@@ -56,4 +64,5 @@ public class MyScrollerChartView extends EasyScrollerChartView {
         }
         canvas.restore();
     }
+
 }

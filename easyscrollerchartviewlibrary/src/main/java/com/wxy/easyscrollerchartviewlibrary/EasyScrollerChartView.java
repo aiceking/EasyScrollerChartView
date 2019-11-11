@@ -66,6 +66,8 @@ public abstract class EasyScrollerChartView extends View {
     private onClickListener onClickListener;
     private int mActivePointerId;
     private  final int INVALID_POINTER = -1;
+    private int minX,maxX,minX_horizontalCoordinates,maxX_horizontalCoordinates;
+
     public EasyScrollerChartView(Context context) {
         super(context);
     }
@@ -86,17 +88,20 @@ public abstract class EasyScrollerChartView extends View {
 
         //横坐标的刻度值画笔
         horizontalTextPaint= new TextPaint();
+        horizontalTextPaint.setAntiAlias(true);
         horizontalTextPaint.setTextSize(40);
         horizontalTextPaint.setColor(Color.BLACK);
 
         //纵坐标的刻度值画笔
         verticalTextPaint= new TextPaint();
+        horizontalTextPaint.setAntiAlias(true);
         verticalTextPaint.setTextAlign(Paint.Align.RIGHT);
         verticalTextPaint.setTextSize(40);
         verticalTextPaint.setColor(Color.BLACK);
 
         //每个点的值画笔
         pointTextPaint= new TextPaint();
+        verticalLinePaint.setAntiAlias(true);
         pointTextPaint.setTextAlign(Paint.Align.CENTER);
         pointTextPaint.setTextSize(40);
         pointTextPaint.setColor(Color.BLACK);
@@ -204,9 +209,13 @@ public abstract class EasyScrollerChartView extends View {
             return;
         }
         /**先计算原点的位置*/
+        if (originalPoint==null){
         originalPoint=calculateOriginalPoint();
         horizontalAverageWidth=(getWidth()-getPaddingRight()-originalPoint.x)*horizontalRatio;
         verticalRegionLength=originalPoint.y-getPaddingTop()-((originalPoint.y-getPaddingTop())/verticalCoordinatesList.size());
+        /**计算可滑动的数据边界，即只画可显示范围内左右各多一个点的内容，防止数据量过大导致卡顿*/
+        }
+        calculateSide(horizontalAverageWidth);
         /**画横坐标的线,如果可以滑动，默认横坐标的线要画满整个view的宽度，因为数据多，能表示出滑动还有数据，如果不可以滑动，则默认宽度不占满，并且留出一个横坐标平均区间的50%，看起来美观*/
         drawHorizontalLine(canvas);
         /**画纵坐标的线*/
@@ -216,11 +225,26 @@ public abstract class EasyScrollerChartView extends View {
         /**画横坐标的刻度值*/
         drawHorizontalLineCoordinates(canvas,originalPoint);
         /**画所有的点*/
-        drawContent(canvas,originalPoint,horizontalAverageWidth,verticalRegionLength,new Rect(originalPoint.x+getScrollX(),getPaddingTop(),getWidth()-getPaddingRight()+getScrollX(),getHeight()-getPaddingBottom()));
+        drawContent(canvas,originalPoint,scrollerPointModelList,minX,maxX,horizontalAverageWidth,horizontalAverageWeight,horizontalMin,verticalRegionLength,verticalMin,verticalMax,new Rect(originalPoint.x+getScrollX(),getPaddingTop(),getWidth()-getPaddingRight()+getScrollX(),getHeight()-getPaddingBottom()));
         if (saveInstanceStateScrollX!=0){
             scrollTo((int)(saveInstanceStateScrollX*(getWidth()-getPaddingRight()-originalPoint.x)),0);
             saveInstanceStateScrollX=0;
         }
+    }
+    //当点比较多的时候计算一下要画的点的边界值
+    private void calculateSide(float horizontalAverageWidth) {
+        //一开始已经花了一个点
+        minX=(int) Math.ceil(getScrollX()/horizontalAverageWidth*horizontalAverageWeight)-1;
+        minX_horizontalCoordinates=(int) Math.ceil(getScrollX()/horizontalAverageWidth)-1;
+        //一开始没滑动前，画了1/getHorizontalRatio()+1个点，然后用getScrollX()/horizontalAverageWidth向上取整得到滑动过的区域有几个点，然后再画的时候补充进来
+        maxX=(int) (1/getHorizontalRatio()*horizontalAverageWeight+1)+(int) Math.ceil(getScrollX()/horizontalAverageWidth*horizontalAverageWeight);
+        maxX_horizontalCoordinates=(int) (1/getHorizontalRatio()+1)+(int) Math.ceil(getScrollX()/horizontalAverageWidth);
+        //数据修正
+        minX=minX>=0?minX:0;
+        maxX=maxX<=scrollerPointModelList.size()?maxX:scrollerPointModelList.size();
+
+        minX_horizontalCoordinates=minX_horizontalCoordinates>=0?minX_horizontalCoordinates:0;
+        maxX_horizontalCoordinates=maxX_horizontalCoordinates<=horizontalCoordinatesList.size()?maxX_horizontalCoordinates:horizontalCoordinatesList.size();
     }
     /**画横坐标的线*/
     protected void drawHorizontalLine(Canvas canvas) {
@@ -238,7 +262,10 @@ public abstract class EasyScrollerChartView extends View {
 
     }
 
-    public abstract void drawContent(Canvas canvas, Point point,float horizontalAverageWidth, float verticalRegionLength,Rect rect);
+    public abstract void drawContent(Canvas canvas, Point originalPoint, List<? extends ScrollerPointModel> scrollerPointModelList,
+                                     int minX, int maxX,
+                                     float horizontalAverageWidth, float horizontalAverageWeight, float horizontalMin,
+                                     float verticalRegionLength,float verticalMin,float verticalMax, Rect rect);
 
 
     /**画纵坐标的刻度值*/
@@ -263,15 +290,13 @@ public abstract class EasyScrollerChartView extends View {
         canvas.save();
         canvas.clipRect(new Rect(point.x+getScrollX(),getPaddingTop(),getWidth()-getPaddingRight()+getScrollX(),getHeight()-getPaddingBottom()));
         Rect horizontalRectOneText=getTextRect(horizontalTextPaint,horizontalCoordinatesList.get(0));
-        for (int i=0;i<horizontalCoordinatesList.size();i++){
-
+        for (int i=minX_horizontalCoordinates;i<maxX_horizontalCoordinates;i++){
                     StaticLayout sl = new StaticLayout(horizontalCoordinatesList.get(i),horizontalTextPaint,(int)HorizontalAverageTextwidth, Layout.Alignment.ALIGN_NORMAL,1.0f,0.0f,true);
                                         canvas.save();
                     canvas.translate((float) point.x+(getWidth()-getPaddingRight()-point.x)*horizontalRatio*(i+1)-(sl.getLineWidth(0)/2),(float) point.y+(horizontalRectOneText.bottom-horizontalRectOneText.top));
                     sl.draw(canvas);
                     canvas.translate(0,0);
                     canvas.restore();
-
         }
         canvas.restore();
     }
@@ -355,6 +380,7 @@ public abstract class EasyScrollerChartView extends View {
             case MotionEvent.ACTION_POINTER_DOWN:
                 //如果有新的手指按下，就直接把它当作当前活跃的指针
                 final int index = event.getActionIndex();
+                Log.v("haha=",index+"");
                 mActivePointerId = event.getPointerId(index);
                 //并且刷新上一次记录的旧坐标值
                 downX=(int) event.getX(index);
@@ -371,8 +397,9 @@ public abstract class EasyScrollerChartView extends View {
                     }
                     int dx = (int) event.getX(activePointerIndex) - mLastX;
                     int dy = (int) event.getY(activePointerIndex) - mLastY;
-                    if (Math.abs(dx) < Math.abs(dy)) {
-                        getParent().requestDisallowInterceptTouchEvent(false);
+                    int scrollX = (int) event.getX(activePointerIndex) - downX;
+                    int scrollY = (int) event.getY(activePointerIndex) - downY;
+                    if (Math.abs(scrollX) < Math.abs(scrollY)) {
                         if (getScrollX() < 0) {
                             scroller.startScroll(getScrollX(), 0, -getScrollX(), 0, 800);
                             invalidate();
@@ -380,6 +407,8 @@ public abstract class EasyScrollerChartView extends View {
                             scroller.startScroll(getScrollX(), 0, (int) (scrollerPointModelList.size() * horizontalAverageWidth - (getWidth() - getPaddingRight() - originalPoint.x) - getScrollX()), 0, 800);
                             invalidate();
                         }
+                        getParent().requestDisallowInterceptTouchEvent(false);
+                        return  false;
                     } else {
                         getParent().requestDisallowInterceptTouchEvent(true);
                         if (getScrollX() < 0 || getScrollX() >= (scrollerPointModelList.size() * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
@@ -448,7 +477,7 @@ public abstract class EasyScrollerChartView extends View {
         //如果抬起的那根手指，刚好是当前活跃的手指，那么
         if (pointerId == mActivePointerId) {
             //另选一根手指，并把它标记为活跃（皇帝驾崩，太子登基）
-             int newPointerIndex = pointerIndex == 0 ? 1 : 0;
+             int newPointerIndex =  pointerIndex == 0 ? 1 : 0;
             mActivePointerId = ev.getPointerId(newPointerIndex);
             //把上一次记录的坐标，更新为新手指的当前坐标
             downX = (int) ev.getX(newPointerIndex);
@@ -576,6 +605,9 @@ public abstract class EasyScrollerChartView extends View {
 
     public void setScrollSideDamping(float scrollSideDamping) {
         this.scrollSideDamping = scrollSideDamping;
+    }
+    public void reSet() {
+       originalPoint=null;
     }
    public interface onClickListener{
        void onClick(float x,float y);
