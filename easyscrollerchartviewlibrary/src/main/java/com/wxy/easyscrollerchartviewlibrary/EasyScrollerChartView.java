@@ -67,6 +67,7 @@ public abstract class EasyScrollerChartView extends View {
     private int mActivePointerId;
     private  final int INVALID_POINTER = -1;
     private int minX,maxX,minX_horizontalCoordinates,maxX_horizontalCoordinates;
+    private int  mLastX_dispatch,mLastY_dispatch ;
 
     public EasyScrollerChartView(Context context) {
         super(context);
@@ -232,7 +233,7 @@ public abstract class EasyScrollerChartView extends View {
         }
     }
     //当点比较多的时候计算一下要画的点的边界值
-    private void calculateSide(float horizontalAverageWidth) {
+    public void calculateSide(float horizontalAverageWidth) {
         //一开始已经花了一个点
         minX=(int) Math.ceil(getScrollX()/horizontalAverageWidth*horizontalAverageWeight)-1;
         minX_horizontalCoordinates=(int) Math.ceil(getScrollX()/horizontalAverageWidth)-1;
@@ -245,6 +246,18 @@ public abstract class EasyScrollerChartView extends View {
 
         minX_horizontalCoordinates=minX_horizontalCoordinates>=0?minX_horizontalCoordinates:0;
         maxX_horizontalCoordinates=maxX_horizontalCoordinates<=horizontalCoordinatesList.size()?maxX_horizontalCoordinates:horizontalCoordinatesList.size();
+    }
+    //转化成相对当前坐标系的坐标
+    public float calculateX(float x) {
+        float calculateX=((x-horizontalMin)/horizontalAverageWeight*horizontalAverageWidth)+originalPoint.x;
+        return calculateX;
+
+    }
+    //转化成相对当前坐标系的坐标
+    public float calculateY(float y) {
+        float calculateY=originalPoint.y-((y-verticalMin)/(verticalMax-verticalMin)* verticalRegionLength);
+        return calculateY;
+
     }
     /**画横坐标的线*/
     protected void drawHorizontalLine(Canvas canvas) {
@@ -358,6 +371,34 @@ public abstract class EasyScrollerChartView extends View {
     }
 
     @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        int x=(int)event.getX();
+        int y=(int)event.getY();
+        switch (event.getAction()){
+             case MotionEvent.ACTION_DOWN:
+                 getParent().requestDisallowInterceptTouchEvent(true);
+                 break;
+            case  MotionEvent.ACTION_MOVE:
+                int deltaX = x - mLastX_dispatch;
+                int deltaY = y - mLastY_dispatch;
+                if(Math.abs(deltaX)<Math.abs(deltaY)){
+                    //父控件拦截
+                    Log.v("haha=","上下");
+                    getParent().requestDisallowInterceptTouchEvent(false);
+                }else{
+                    Log.v("haha=","左右");
+                    getParent().requestDisallowInterceptTouchEvent(true);
+                }
+                 break;
+            default:
+                break;
+        }
+        mLastX_dispatch = x;
+        mLastY_dispatch = y;
+        return super.dispatchTouchEvent(event);
+    }
+
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
 
         if (isScoll){
@@ -380,7 +421,6 @@ public abstract class EasyScrollerChartView extends View {
             case MotionEvent.ACTION_POINTER_DOWN:
                 //如果有新的手指按下，就直接把它当作当前活跃的指针
                 final int index = event.getActionIndex();
-                Log.v("haha=",index+"");
                 mActivePointerId = event.getPointerId(index);
                 //并且刷新上一次记录的旧坐标值
                 downX=(int) event.getX(index);
@@ -396,27 +436,31 @@ public abstract class EasyScrollerChartView extends View {
                         break;
                     }
                     int dx = (int) event.getX(activePointerIndex) - mLastX;
-                    int dy = (int) event.getY(activePointerIndex) - mLastY;
                     int scrollX = (int) event.getX(activePointerIndex) - downX;
                     int scrollY = (int) event.getY(activePointerIndex) - downY;
-                    if (Math.abs(scrollX) < Math.abs(scrollY)) {
-                        if (getScrollX() < 0) {
-                            scroller.startScroll(getScrollX(), 0, -getScrollX(), 0, 800);
-                            invalidate();
-                        } else if (getScrollX() >= (scrollerPointModelList.size() * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
-                            scroller.startScroll(getScrollX(), 0, (int) (scrollerPointModelList.size() * horizontalAverageWidth - (getWidth() - getPaddingRight() - originalPoint.x) - getScrollX()), 0, 800);
-                            invalidate();
-                        }
-                        getParent().requestDisallowInterceptTouchEvent(false);
-                        return  false;
-                    } else {
-                        getParent().requestDisallowInterceptTouchEvent(true);
-                        if (getScrollX() < 0 || getScrollX() >= (scrollerPointModelList.size() * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
-                            dx =(int) (dx * scrollSideDamping);
-                        }
-                        scrollBy(-dx, 0);
-                        invalidate();
+                    if (getScrollX() < 0 || getScrollX() >= (scrollerPointModelList.size() * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
+                        dx =(int) (dx * scrollSideDamping);
                     }
+                    scrollBy(-dx, 0);
+                    invalidate();
+//                    if (Math.abs(scrollX) < Math.abs(scrollY)) {
+//                        if (getScrollX() < 0) {
+//                            scroller.startScroll(getScrollX(), 0, -getScrollX(), 0, 800);
+//                            invalidate();
+//                        } else if (getScrollX() >= (scrollerPointModelList.size() * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
+//                            scroller.startScroll(getScrollX(), 0, (int) (scrollerPointModelList.size() * horizontalAverageWidth - (getWidth() - getPaddingRight() - originalPoint.x) - getScrollX()), 0, 800);
+//                            invalidate();
+//                        }
+//                        getParent().requestDisallowInterceptTouchEvent(false);
+//                        return  false;
+//                    } else {
+//                        getParent().requestDisallowInterceptTouchEvent(true);
+//                        if (getScrollX() < 0 || getScrollX() >= (scrollerPointModelList.size() * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
+//                            dx =(int) (dx * scrollSideDamping);
+//                        }
+//                        scrollBy(-dx, 0);
+//                        invalidate();
+//                    }
                 }
                 break;
             case MotionEvent.ACTION_CANCEL:
@@ -466,7 +510,6 @@ public abstract class EasyScrollerChartView extends View {
             mLastY=(int) event.getY(event.findPointerIndex(mActivePointerId));
         }else {
             mLastX = (int) event.getX();
-            mLastY=(int) event.getY();
         }
 
         return true;

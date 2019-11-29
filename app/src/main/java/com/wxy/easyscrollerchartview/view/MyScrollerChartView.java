@@ -39,8 +39,8 @@ public class MyScrollerChartView extends EasyScrollerChartView {
         canvas.save();
         canvas.clipRect(rect);
         for (int i=minX;i<maxX;i++ ){
-            float x=((scrollerPointModelList.get(i).getX()-horizontalMin)/horizontalAverageWeight*horizontalAverageWidth)+originalPoint.x;
-            float y=originalPoint.y-((scrollerPointModelList.get(i).getY()-verticalMin)/(verticalMax-verticalMin)* verticalRegionLength);
+            float x=calculateX(scrollerPointModelList.get(i).getX());
+            float y=calculateY(scrollerPointModelList.get(i).getY());
             pointTextPaint.setColor(Color.BLUE);
             pointTextPaint.setStrokeWidth(5);
             pointTextPaint.setStyle(Paint.Style.STROKE);
@@ -55,8 +55,8 @@ public class MyScrollerChartView extends EasyScrollerChartView {
         canvas.save();
         canvas.clipRect(new Rect(rect.left-10,rect.top,rect.right,rect.bottom));
         for (int i=minX;i<maxX;i++ ){
-            float x=((scrollerPointModelList.get(i).getX()-horizontalMin)/horizontalAverageWeight*horizontalAverageWidth)+originalPoint.x;
-            float y=originalPoint.y-((scrollerPointModelList.get(i).getY()-verticalMin)/(verticalMax-verticalMin)* verticalRegionLength);
+            float x=calculateX(scrollerPointModelList.get(i).getX());
+            float y=calculateY(scrollerPointModelList.get(i).getY());
             pointTextPaint.setColor(Color.RED);
             pointTextPaint.setStyle(Paint.Style.FILL);
             canvas.drawCircle(x,

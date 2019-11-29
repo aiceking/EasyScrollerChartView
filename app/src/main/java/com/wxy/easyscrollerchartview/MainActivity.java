@@ -37,14 +37,14 @@ public class MainActivity extends AppCompatActivity {
         List<String> horizontalCoordinatesList_Scoll=new ArrayList<>();
         for (int i=0;i<366;i++){
                     if (i<365){
-                    horizontalCoordinatesList_Scoll.add("第\n"+(i+1)+"\n天");}
+                    horizontalCoordinatesList_Scoll.add("第\n "+(i+1)+"\n天");}
                 MyScrollerPointModel myScrollerPointModel=new MyScrollerPointModel(i,((int) (Math.random() * 5 + 1))*5000,"test"+(i+1));
                 myScrollerPointModelList.add(myScrollerPointModel);
         }
         escView.setScrollerPointModelList(myScrollerPointModelList);
         escView.setVerticalMinAndMax(5000,30000);
         escView.setHorizontalMinAndAverageWeight(0,1);
-        escView.setHorizontalCoordinatesListScroll(horizontalCoordinatesList_Scoll,0.3f);
+        escView.setHorizontalCoordinatesListScroll(horizontalCoordinatesList_Scoll,0.2f);
 //        escView.setHorizontalCoordinatesListNoScroll(horizontalCoordinatesList_Scoll);
         escView.setScrollSideDamping(0.5f);
         escView.setOnClickListener(new EasyScrollerChartView.onClickListener() {
