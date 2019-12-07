@@ -482,6 +482,13 @@ public abstract class EasyScrollerChartView extends View {
                         onClickListener.onClick(((event.getX()+getScrollX())-originalPoint.x)/horizontalAverageWidth*horizontalAverageWeight+horizontalMin,
                                 (originalPoint.y- event.getY())/verticalRegionLength*(verticalMax-verticalMin)+verticalMin);
                     }
+                    if (getScrollX()<0){
+                        scroller.startScroll(getScrollX(),0,-getScrollX(),0,800);
+                        invalidate();
+                    }else if (getScrollX()>=(scrollerPointModelList.size()*horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x)))){
+                        scroller.startScroll(getScrollX(),0,(int) (scrollerPointModelList.size()*horizontalAverageWidth-(getWidth()-getPaddingRight()-originalPoint.x)-getScrollX()),0,800);
+                        invalidate();
+                    }
                 }else {
                 if (isScoll){
                 if (getScrollX()<0){
