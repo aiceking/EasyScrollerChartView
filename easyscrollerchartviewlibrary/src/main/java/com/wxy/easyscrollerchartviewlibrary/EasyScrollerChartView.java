@@ -150,7 +150,11 @@ public abstract class EasyScrollerChartView extends View {
                     case MeasureSpec.AT_MOST:
                     case MeasureSpec.UNSPECIFIED:
                         width= MeasureSpec.getSize(widthMeasureSpec);
+                        if (getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec)!=0){
                         height=Math.min(width*3/4,getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));
+                        }else {
+                            height= width*3/4;
+                        }
                         break;
                 }
                 break;
@@ -161,8 +165,11 @@ public abstract class EasyScrollerChartView extends View {
                     //高度精确值
                     case MeasureSpec.EXACTLY:
                         height= MeasureSpec.getSize(heightMeasureSpec);
-                        width=Math.min(height*4/3,getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec));
-
+                        if (getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec)!=0) {
+                            width = Math.min(height * 4 / 3, getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec));
+                        }else {
+                            width =height * 4 / 3;
+                        }
                         break;
                     case MeasureSpec.AT_MOST:
                     case MeasureSpec.UNSPECIFIED:
@@ -437,31 +444,13 @@ public abstract class EasyScrollerChartView extends View {
                         break;
                     }
                     int dx = (int) event.getX(activePointerIndex) - mLastX;
-                    int scrollX = (int) event.getX(activePointerIndex) - downX;
-                    int scrollY = (int) event.getY(activePointerIndex) - downY;
+
                     if (getScrollX() < 0 || getScrollX() >= (scrollerPointModelList.size() * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
                         dx =(int) (dx * scrollSideDamping);
                     }
                     scrollBy(-dx, 0);
                     invalidate();
-//                    if (Math.abs(scrollX) < Math.abs(scrollY)) {
-//                        if (getScrollX() < 0) {
-//                            scroller.startScroll(getScrollX(), 0, -getScrollX(), 0, 800);
-//                            invalidate();
-//                        } else if (getScrollX() >= (scrollerPointModelList.size() * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
-//                            scroller.startScroll(getScrollX(), 0, (int) (scrollerPointModelList.size() * horizontalAverageWidth - (getWidth() - getPaddingRight() - originalPoint.x) - getScrollX()), 0, 800);
-//                            invalidate();
-//                        }
-//                        getParent().requestDisallowInterceptTouchEvent(false);
-//                        return  false;
-//                    } else {
-//                        getParent().requestDisallowInterceptTouchEvent(true);
-//                        if (getScrollX() < 0 || getScrollX() >= (scrollerPointModelList.size() * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
-//                            dx =(int) (dx * scrollSideDamping);
-//                        }
-//                        scrollBy(-dx, 0);
-//                        invalidate();
-//                    }
+
                 }
                 break;
             case MotionEvent.ACTION_CANCEL:
@@ -472,6 +461,7 @@ public abstract class EasyScrollerChartView extends View {
                     scroller.startScroll(getScrollX(), 0, (int) (scrollerPointModelList.size() * horizontalAverageWidth - (getWidth() - getPaddingRight() - originalPoint.x) - getScrollX()), 0, 800);
                     invalidate();
                 }
+                break;
             case MotionEvent.ACTION_UP:
                 mActivePointerId = INVALID_POINTER;
                 int clickX = downX - (int) event.getX();
