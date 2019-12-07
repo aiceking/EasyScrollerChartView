@@ -36,8 +36,8 @@ import java.util.List;
 public abstract class EasyScrollerChartView extends View {
     protected final String TAG = getClass().getName();
     //设置默认的宽和高,比例为4:3
-    protected static final int DEFUALT_VIEW_WIDTH=400;
-    protected static final int DEFUALT_VIEW_HEIGHT=300;
+    protected static final int DEFUALT_VIEW_WIDTH=1200;
+    protected static final int DEFUALT_VIEW_HEIGHT=900;
     protected Paint horizontalLinePaint;
     protected Paint verticalLinePaint;
     protected TextPaint horizontalTextPaint ;
@@ -150,7 +150,7 @@ public abstract class EasyScrollerChartView extends View {
                     case MeasureSpec.AT_MOST:
                     case MeasureSpec.UNSPECIFIED:
                         width= MeasureSpec.getSize(widthMeasureSpec);
-                        height=width*3/4;
+                        height=Math.min(width*3/4,getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));
                         break;
                 }
                 break;
@@ -161,7 +161,8 @@ public abstract class EasyScrollerChartView extends View {
                     //高度精确值
                     case MeasureSpec.EXACTLY:
                         height= MeasureSpec.getSize(heightMeasureSpec);
-                        width=height*4/3;
+                        width=Math.min(height*4/3,getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec));
+
                         break;
                     case MeasureSpec.AT_MOST:
                     case MeasureSpec.UNSPECIFIED:
@@ -412,7 +413,7 @@ public abstract class EasyScrollerChartView extends View {
                 mActivePointerId=event.getPointerId(0);
                 downX=(int) event.getX();
                 downY=(int) event.getY();
-                getParent().requestDisallowInterceptTouchEvent(true);
+
                 if (!scroller.isFinished()) {
                     isFling=false;
                     scroller.abortAnimation();

@@ -1,5 +1,8 @@
 package com.wxy.easyscrollerchartview.model;
 
+
+import android.os.Parcel;
+
 import com.wxy.easyscrollerchartviewlibrary.model.ScrollerPointModel;
 
 public class MyScrollerPointModel extends ScrollerPointModel {
@@ -20,4 +23,32 @@ public class MyScrollerPointModel extends ScrollerPointModel {
     public void setName(String name) {
         this.name = name;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        super.writeToParcel(dest, flags);
+        dest.writeString(this.name);
+    }
+
+    protected MyScrollerPointModel(Parcel in) {
+        super(in);
+        this.name = in.readString();
+    }
+
+    public static final Creator<MyScrollerPointModel> CREATOR = new Creator<MyScrollerPointModel>() {
+        @Override
+        public MyScrollerPointModel createFromParcel(Parcel source) {
+            return new MyScrollerPointModel(source);
+        }
+
+        @Override
+        public MyScrollerPointModel[] newArray(int size) {
+            return new MyScrollerPointModel[size];
+        }
+    };
 }

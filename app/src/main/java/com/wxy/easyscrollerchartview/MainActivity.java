@@ -2,6 +2,9 @@ package com.wxy.easyscrollerchartview;
 
 
 import android.os.Bundle;
+import android.os.Parcelable;
+import android.os.PersistableBundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
@@ -19,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.esc_view)
     MyScrollerChartView escView;
-
+    private List<MyScrollerPointModel> myScrollerPointModelList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,13 +36,25 @@ public class MainActivity extends AppCompatActivity {
         verticalCoordinatesList.add("25000");
         verticalCoordinatesList.add("30000");
         escView.setVerticalCoordinatesList(verticalCoordinatesList);
-        List<MyScrollerPointModel> myScrollerPointModelList=new ArrayList<>();
-        List<String> horizontalCoordinatesList_Scoll=new ArrayList<>();
-        for (int i=0;i<366;i++){
-                    if (i<365){
-                    horizontalCoordinatesList_Scoll.add("第\n "+(i+1)+"\n天");}
-                MyScrollerPointModel myScrollerPointModel=new MyScrollerPointModel(i,((int) (Math.random() * 5 + 1))*5000,"test"+(i+1));
+        List<String> horizontalCoordinatesList_Scoll = new ArrayList<>();
+        for (int i = 0; i < 366; i++) {
+            if (i < 365) {
+                horizontalCoordinatesList_Scoll.add("第\n " + (i + 1) + "\n天");
+            }
+        }
+        if (savedInstanceState!=null) {
+            Log.v("heihei=","onCreate");
+
+            myScrollerPointModelList = (ArrayList) savedInstanceState.getParcelableArrayList("myScrollerPointModelList");
+        }
+        if (myScrollerPointModelList==null){
+        myScrollerPointModelList=new ArrayList<>();
+        for (int i=0;i<366;i++) {
+            if (i < 365) {
+                MyScrollerPointModel myScrollerPointModel = new MyScrollerPointModel(i, ((int) (Math.random() * 5 + 1)) * 5000, "test" + (i + 1));
                 myScrollerPointModelList.add(myScrollerPointModel);
+            }
+        }
         }
         escView.setScrollerPointModelList(myScrollerPointModelList);
         escView.setVerticalMinAndMax(5000,30000);
@@ -63,4 +78,12 @@ public class MainActivity extends AppCompatActivity {
 //        horizontalCoordinatesList_noScoll.add("5月");
 //        escView.setHorizontalCoordinatesListNoScroll(horizontalCoordinatesList_noScoll);
     }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        Log.v("heihei=","onSaveInstanceState");
+        outState.putParcelableArrayList("myScrollerPointModelList", (ArrayList<? extends Parcelable>) myScrollerPointModelList);
+        super.onSaveInstanceState(outState);
+    }
+
 }
