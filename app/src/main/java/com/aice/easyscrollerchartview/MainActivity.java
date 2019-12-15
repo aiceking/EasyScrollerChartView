@@ -35,10 +35,8 @@ public class MainActivity extends AppCompatActivity {
         verticalCoordinatesList.add("30000");
         escView.setVerticalCoordinatesList(verticalCoordinatesList);
         List<String> horizontalCoordinatesList_Scoll = new ArrayList<>();
-        for (int i = 0; i < 366; i++) {
-            if (i < 365) {
-                horizontalCoordinatesList_Scoll.add("第\n " + (i + 1) + "\n天");
-            }
+        for (int i = 0; i < 100; i++) {
+                horizontalCoordinatesList_Scoll.add( i +1+ "");
         }
         if (savedInstanceState!=null) {
             Log.v("heihei=","onCreate");
@@ -47,16 +45,14 @@ public class MainActivity extends AppCompatActivity {
         }
         if (myScrollerPointModelList==null){
         myScrollerPointModelList=new ArrayList<>();
-        for (int i=0;i<366;i++) {
-            if (i < 365) {
+        for (int i=0;i<100;i++) {
                 MyScrollerPointModel myScrollerPointModel = new MyScrollerPointModel(i, ((int) (Math.random() * 5 + 1)) * 5000, "test" + (i + 1));
                 myScrollerPointModelList.add(myScrollerPointModel);
-            }
         }
         }
         escView.setScrollerPointModelList(myScrollerPointModelList);
         escView.setVerticalMinAndMax(5000,30000);
-        escView.setHorizontalMinAndAverageWeight(0,1);
+        escView.setHorizontalMinAndAverageWeight(2,1);
         escView.setHorizontalCoordinatesListScroll(horizontalCoordinatesList_Scoll,0.2f);
 //        escView.setHorizontalCoordinatesListNoScroll(horizontalCoordinatesList_Scoll);
         escView.setScrollSideDamping(0.5f);
