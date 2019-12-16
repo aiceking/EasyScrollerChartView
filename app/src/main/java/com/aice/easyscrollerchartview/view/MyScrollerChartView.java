@@ -7,9 +7,8 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 
 import com.wxy.easyscrollerchartview.EasyScrollerChartView;
 import com.wxy.easyscrollerchartview.model.ScrollerPointModel;
@@ -28,13 +27,11 @@ public class MyScrollerChartView extends EasyScrollerChartView {
     public MyScrollerChartView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
-
     @Override
     public void drawContent(Canvas canvas, Point originalPoint, List<? extends ScrollerPointModel> scrollerPointModelList,
                             int minX, int maxX,
-                            float horizontalAverageWidth, float horizontalAverageWeight, float horizontalMin,
-                            float verticalRegionLength,float verticalMin,float verticalMax, Rect rect) {
-        Log.v("xixi=",minX+"="+maxX);
+                            float realHorizontalAverageWidth,
+                            float verticalRegionLength,Rect rect) {
         Path path=new Path();
         canvas.save();
         canvas.clipRect(rect);
