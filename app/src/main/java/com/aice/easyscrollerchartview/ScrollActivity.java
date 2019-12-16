@@ -4,7 +4,6 @@ package com.aice.easyscrollerchartview;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
@@ -66,6 +65,10 @@ public class ScrollActivity extends AppCompatActivity {
     Button btnHorizontalLineColor;
     @BindView(R.id.btn_vertical_line_color)
     Button btnVerticalLineColor;
+    @BindView(R.id.seekbar_horizontal_start)
+    AppCompatSeekBar seekbarHorizontalStart;
+    @BindView(R.id.tv_horizontal_start)
+    TextView tvHorizontalStart;
     private List<ScrollerPointModel> myScrollerPointModelList;
 
     @Override
@@ -84,7 +87,7 @@ public class ScrollActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 int size = (int) ((float) progress / 100 * 100);
-                tvHorizontalSize.setText("HorizontalTextSize："+size);
+                tvHorizontalSize.setText("HorizontalTextSize：" + size);
                 escView.getHorizontalTextPaint().setTextSize(size);
                 //重置坐标系
                 escView.reSetCoordinates();
@@ -104,7 +107,7 @@ public class ScrollActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 int size = (int) ((float) progress / 100 * 100);
-                tvVerticalSize.setText("VertialTextSize："+size);
+                tvVerticalSize.setText("VertialTextSize：" + size);
                 escView.getVerticalTextPaint().setTextSize(size);
                 //重置坐标系
                 escView.reSetCoordinates();
@@ -124,7 +127,7 @@ public class ScrollActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 escView.setScrollSideDamping((float) progress / 100);
-                tvScrollSideDamping.setText("滑动到边界阻尼系数："+((float) progress / 100));
+                tvScrollSideDamping.setText("滑动到边界阻尼系数：" + ((float) progress / 100));
             }
 
             @Override
@@ -142,7 +145,7 @@ public class ScrollActivity extends AppCompatActivity {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 escView.setHorizontalRatio((float) progress / 100);
                 escView.reSetCoordinates();
-                tvHorizontalRatio.setText("横坐标区间占可画区域比例："+(float) progress / 100);
+                tvHorizontalRatio.setText("横坐标区间占可画区域比例：" + (float) progress / 100);
             }
 
             @Override
@@ -158,9 +161,27 @@ public class ScrollActivity extends AppCompatActivity {
         seekbarHorizontalAverageWeight.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                escView.setHorizontalMinAndAverageWeight(0,((float) progress / 10));
+                escView.setHorizontalMinAndAverageWeight(escView.getHorizontalMin(), ((float) progress / 10));
                 escView.reSetCoordinates();
-                tvHorizontalAverageWeight.setText("每个横坐标区间画多少个点："+((float) progress / 10));
+                tvHorizontalAverageWeight.setText("每个横坐标区间画多少个点：" + ((float) progress / 10));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+        seekbarHorizontalStart.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                escView.setHorizontalMinAndAverageWeight((int)((float) progress / 10),escView.getHorizontalAverageWeight());
+                escView.reSetCoordinates();
+                tvHorizontalStart.setText("横坐标从第几个画起：" + (int)((float) progress / 10));
             }
 
             @Override
@@ -212,33 +233,34 @@ public class ScrollActivity extends AppCompatActivity {
         escView.setOnClickListener(new EasyScrollerChartView.onClickListener() {
             @Override
             public void onClick(float x, float y) {
-                Toast.makeText(ScrollActivity.this, x+"="+y, Toast.LENGTH_SHORT).show();
+                Toast.makeText(ScrollActivity.this, x + "=" + y, Toast.LENGTH_SHORT).show();
             }
         });
     }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putParcelableArrayList("myScrollerPointModelList", (ArrayList<? extends Parcelable>) myScrollerPointModelList);
         super.onSaveInstanceState(outState);
     }
 
-    @OnClick({ R.id.switch_horizontal_line, R.id.switch_vertical_line, R.id.btn_horizontal_text_color, R.id.btn_vertical_text_color, R.id.btn_horizontal_line_color, R.id.btn_vertical_line_color})
+    @OnClick({R.id.switch_horizontal_line, R.id.switch_vertical_line, R.id.btn_horizontal_text_color, R.id.btn_vertical_text_color, R.id.btn_horizontal_line_color, R.id.btn_vertical_line_color})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.switch_horizontal_line:
-                if (switchHorizontalLine.isOpened()){
+                if (switchHorizontalLine.isOpened()) {
                     tvHorizontalLine.setText("是否画横坐标轴：是");
                     escView.setDrawHorizontalLine(true);
-                }else {
+                } else {
                     tvHorizontalLine.setText("是否画横坐标轴：否");
                     escView.setDrawHorizontalLine(false);
                 }
                 break;
             case R.id.switch_vertical_line:
-                if (switchVerticalLine.isOpened()){
+                if (switchVerticalLine.isOpened()) {
                     escView.setDrawVerticalLine(true);
                     tvVerticalLine.setText("是否画纵坐标轴：是");
-                }else {
+                } else {
                     escView.setDrawVerticalLine(false);
                     tvVerticalLine.setText("是否画纵坐标轴：否");
                 }

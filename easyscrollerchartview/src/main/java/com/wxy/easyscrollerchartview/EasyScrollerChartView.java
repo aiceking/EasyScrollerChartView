@@ -37,7 +37,17 @@ public abstract class EasyScrollerChartView extends View {
     protected TextPaint pointTextPaint;
     protected float verticalMin= 0;//纵坐标最小值
     protected float verticalMax= 0;//纵坐标最大值
+
+    public float getHorizontalMin() {
+        return horizontalMin;
+    }
+
     protected float horizontalMin= 0;//横坐标最小值
+
+    public float getHorizontalAverageWeight() {
+        return horizontalAverageWeight;
+    }
+
     protected float horizontalAverageWeight= 0;//横坐标每个平均区间代表多少值
     protected float horizontalRatio=0.2f;
     protected List<String> horizontalCoordinatesList;
@@ -257,8 +267,8 @@ public abstract class EasyScrollerChartView extends View {
         minX= (int) ((int) Math.ceil(getScrollX()/horizontalAverageWidth*horizontalAverageWeight)-1-horizontalMin);
         minX_horizontalCoordinates= (int) ((int) Math.ceil(getScrollX()/horizontalAverageWidth)-1-horizontalMin);
         //一开始没滑动前，画了1/getHorizontalRatio()+1个点，然后用getScrollX()/horizontalAverageWidth向上取整得到滑动过的区域有几个点，然后再画的时候补充进来
-        maxX= (int) ((int) Math.ceil((1/getHorizontalRatio())*horizontalAverageWeight+1)+(int) Math.ceil(getScrollX()/horizontalAverageWidth*horizontalAverageWeight)-horizontalMin);
-        maxX_horizontalCoordinates= (int) ((int) Math.ceil((1/getHorizontalRatio()+1))+(int) Math.ceil(getScrollX()/horizontalAverageWidth)-horizontalMin);
+        maxX= (int) ((int) Math.ceil((1/getHorizontalRatio())*horizontalAverageWeight+1)+(int) Math.ceil(getScrollX()/horizontalAverageWidth*horizontalAverageWeight)+horizontalMin);
+        maxX_horizontalCoordinates= (int) ((int) Math.ceil((1/getHorizontalRatio()+1))+(int) Math.ceil(getScrollX()/horizontalAverageWidth)+horizontalMin);
         //数据修正
         minX=minX>=0?minX:0;
         maxX=maxX<=scrollerPointModelList.size()?maxX:scrollerPointModelList.size();

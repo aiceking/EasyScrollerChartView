@@ -55,6 +55,10 @@ public class NoScrollActivity extends AppCompatActivity {
     Button btnHorizontalLineColor;
     @BindView(R.id.btn_vertical_line_color)
     Button btnVerticalLineColor;
+    @BindView(R.id.seekbar_horizontal_start)
+    AppCompatSeekBar seekbarHorizontalStart;
+    @BindView(R.id.tv_horizontal_start)
+    TextView tvHorizontalStart;
     private List<ScrollerPointModel> myScrollerPointModelList;
 
     @Override
@@ -111,9 +115,27 @@ public class NoScrollActivity extends AppCompatActivity {
         seekbarHorizontalAverageWeight.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                escView.setHorizontalMinAndAverageWeight(0,((float) progress / 10));
+                escView.setHorizontalMinAndAverageWeight(escView.getHorizontalMin(),((float) progress / 10));
                 escView.reSetCoordinates();
                 tvHorizontalAverageWeight.setText("每个横坐标区间画多少个点："+((float) progress / 10));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+        seekbarHorizontalStart.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                escView.setHorizontalMinAndAverageWeight((int)((float) progress / 10),escView.getHorizontalAverageWeight());
+                escView.reSetCoordinates();
+                tvHorizontalStart.setText("横坐标从第几个画起：" + (int)((float) progress / 10));
             }
 
             @Override

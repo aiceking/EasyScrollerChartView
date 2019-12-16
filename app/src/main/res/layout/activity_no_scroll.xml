@@ -124,6 +124,25 @@
                     android:id="@+id/tv_horizontalAverageWeight"></TextView>
 
             </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <androidx.appcompat.widget.AppCompatSeekBar
+                    android:layout_width="0dp"
+                    android:layout_marginLeft="15dp"
+                    android:layout_weight="1"
+                    android:id="@+id/seekbar_horizontal_start"
+                    android:layout_height="wrap_content">
+                </androidx.appcompat.widget.AppCompatSeekBar>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="横坐标从第几个画起：0"
+                    android:layout_margin="10dp"
+                    android:id="@+id/tv_horizontal_start"></TextView>
+            </LinearLayout>
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
