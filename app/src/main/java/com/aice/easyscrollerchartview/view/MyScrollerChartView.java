@@ -9,6 +9,7 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import androidx.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 
 import com.wxy.easyscrollerchartview.EasyScrollerChartView;
 import com.wxy.easyscrollerchartview.model.ScrollerPointModel;
@@ -32,6 +33,7 @@ public class MyScrollerChartView extends EasyScrollerChartView {
                             int minX, int maxX,
                             float realHorizontalAverageWidth,
                             float verticalRegionLength,Rect rect) {
+
         Path path=new Path();
         canvas.save();
         canvas.clipRect(rect);
