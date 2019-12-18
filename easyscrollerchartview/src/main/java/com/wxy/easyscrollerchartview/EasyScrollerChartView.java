@@ -72,6 +72,19 @@ public abstract class EasyScrollerChartView extends View {
     private int  mLastX_dispatch,mLastY_dispatch ;
     private boolean isDrawVerticalLine;
     private boolean isDrawHorizontalLine;
+
+    public void setEnableTouch(boolean enableTouch) {
+        this.enableTouch = enableTouch;
+    }
+
+    private boolean enableTouch;
+
+    public void setOnPromiseParentTouchListener(EasyScrollerChartView.onPromiseParentTouchListener onPromiseParentTouchListener) {
+        this.onPromiseParentTouchListener = onPromiseParentTouchListener;
+    }
+
+    private onPromiseParentTouchListener onPromiseParentTouchListener;//是否允许父控件拦截事件
+
     public void setDrawVerticalLine(boolean drawVerticalLine) {
         isDrawVerticalLine = drawVerticalLine;
         invalidate();
@@ -122,6 +135,7 @@ public abstract class EasyScrollerChartView extends View {
         scroller=new Scroller(context);
         isDrawHorizontalLine=true;
         isDrawVerticalLine=true;
+        enableTouch=true;
     }
 
     public EasyScrollerChartView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
@@ -400,35 +414,12 @@ public abstract class EasyScrollerChartView extends View {
         return offset;
     }
 
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent event) {
-        int x=(int)event.getX();
-        int y=(int)event.getY();
-        switch (event.getAction()){
-             case MotionEvent.ACTION_DOWN:
-                 getParent().requestDisallowInterceptTouchEvent(true);
-                 break;
-            case  MotionEvent.ACTION_MOVE:
-                int deltaX = x - mLastX_dispatch;
-                int deltaY = y - mLastY_dispatch;
-                if(Math.abs(deltaX)<Math.abs(deltaY)){
-                    //父控件拦截
-                    getParent().requestDisallowInterceptTouchEvent(false);
-                }else{
-                    getParent().requestDisallowInterceptTouchEvent(true);
-                }
-                 break;
-            default:
-                break;
-        }
-        mLastX_dispatch = x;
-        mLastY_dispatch = y;
-        return super.dispatchTouchEvent(event);
-    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-
+        if (!enableTouch){
+            return super.onTouchEvent(event);
+        }
         if (isScoll){
         if (mVelocityTracker == null) {
             mVelocityTracker = VelocityTracker.obtain();
@@ -463,6 +454,20 @@ public abstract class EasyScrollerChartView extends View {
                     if (activePointerIndex == INVALID_POINTER) {
                         break;
                     }
+                    int deltaX = (int) event.getX(activePointerIndex) - mLastX;
+                    int deltaY = (int) event.getY(activePointerIndex) - mLastY;
+                    if(Math.abs(deltaY)>Math.abs(deltaX)){
+                        //父控件拦截
+                        getParent().requestDisallowInterceptTouchEvent(false);
+                        if (onPromiseParentTouchListener!=null){
+                                onPromiseParentTouchListener.onPromiseTouch(true);
+                            }
+                    }
+                    else{
+                        getParent().requestDisallowInterceptTouchEvent(true);
+                        if (onPromiseParentTouchListener!=null){
+                            onPromiseParentTouchListener.onPromiseTouch(false);
+                        }
                     int dx = (int) event.getX(activePointerIndex) - mLastX;
 
                     if (getScrollX() < 0 || getScrollX() >= ((scrollerPointModelList.size()+horizontalMin)  * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
@@ -470,11 +475,12 @@ public abstract class EasyScrollerChartView extends View {
                     }
                     scrollBy(-dx, 0);
                     invalidate();
-
+                    }
                 }
                 break;
             case MotionEvent.ACTION_CANCEL:
                 if (isScoll){
+                    if (scroller.isFinished()){
                 if (getScrollX() < 0) {
                     scroller.startScroll(getScrollX(), 0, -getScrollX(), 0, 800);
                     invalidate();
@@ -482,6 +488,7 @@ public abstract class EasyScrollerChartView extends View {
                     scroller.startScroll(getScrollX(), 0, (int) ((scrollerPointModelList.size()+horizontalMin)  * horizontalAverageWidth - (getWidth() - getPaddingRight() - originalPoint.x) - getScrollX()), 0, 800);
                     invalidate();
                 }
+                    }
                 }
                 break;
             case MotionEvent.ACTION_UP:
@@ -524,6 +531,9 @@ public abstract class EasyScrollerChartView extends View {
                 }
                 }
                 }
+                if (onPromiseParentTouchListener!=null){
+                    onPromiseParentTouchListener.onPromiseTouch(true);
+                }
                 break;
         }
         if (mActivePointerId != INVALID_POINTER) {
@@ -531,6 +541,8 @@ public abstract class EasyScrollerChartView extends View {
             mLastY=(int) event.getY(event.findPointerIndex(mActivePointerId));
         }else {
             mLastX = (int) event.getX();
+            mLastY=(int) event.getY();
+
         }
 
         return true;
@@ -684,4 +696,12 @@ public abstract class EasyScrollerChartView extends View {
    public interface onClickListener{
        void onClick(float x,float y);
    }
+    public interface onPromiseParentTouchListener{
+        void onPromiseTouch(boolean promise);
+    }
+    public enum ScrollDirection{
+        PullDown,
+        UpSlip,
+        None,
+    }
 }

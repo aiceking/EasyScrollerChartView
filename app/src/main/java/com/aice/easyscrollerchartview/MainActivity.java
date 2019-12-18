@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
     }
 
-    @OnClick({R.id.btn_scroll, R.id.btn_noscroll})
+    @OnClick({R.id.btn_scroll, R.id.btn_noscroll,R.id.btn_refresh})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_scroll:
@@ -32,6 +32,10 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.btn_noscroll:
                 startActivity(new Intent(this,NoScrollActivity.class));
+
+                break;
+            case R.id.btn_refresh:
+                startActivity(new Intent(this,SwipRefreshAppbarActivity.class));
 
                 break;
         }

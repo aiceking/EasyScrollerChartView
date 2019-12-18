@@ -38,4 +38,6 @@ dependencies {
     implementation 'com.github.duanhong169:colorpicker:1.1.6'
     //switchbutton
     implementation 'ch.ielse:switchbutton:1.0.1'
+
+    implementation 'com.android.support:design:29.0.0'
 }
