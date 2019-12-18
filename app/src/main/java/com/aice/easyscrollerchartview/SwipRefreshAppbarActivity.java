@@ -106,11 +106,14 @@ public class SwipRefreshAppbarActivity extends AppCompatActivity {
                             }
                         escView.setScrollerPointModelList(myScrollerPointModelList);
                         swipe.setRefreshing(false);
-                        escView.setEnableTouch(true);
                         if (appbarState==EXPANDED){
                             swipe.setEnabled(true);
+                            escView.setEnableTouch(true);
+
                         }else {
                             swipe.setEnabled(false);
+                            escView.setEnableTouch(false);
+
                         }
                     }
                 },2000);
