@@ -1,2 +1,2 @@
-include ':app', ':easyscrollerchartview'
+include ':app', ':easyscrollerchartviewlibrary'
 rootProject.name='EasyScrollerChartView'
