@@ -1,6 +1,6 @@
 # EasyScrollerChartView
 [![](https://jitpack.io/v/NoEndToLF/EasyScrollerChartView.svg)](https://jitpack.io/#NoEndToLF/EasyScrollerChartView)
-**EasyScrollerChartView**：这是一个自定义绘制内容，可滑动、惯性滑动、边界回弹、可点击的坐标系图，使用简单，具备一个自定义View应有的基本素质
+**EasyScrollerChartView**：这是一个自定义绘制内容，可滑动、惯性滑动、边界回弹、可点击的坐标系图，使用简单，具备一个自定义View应有的基本素质（适用于横坐标区间平均，只关注纵坐标的场景）
 * **原理** ：先通过横坐标刻度值和纵坐标刻度值确定原点的位置，保证刻度值的绘制，再次基础上确定可绘制区域Rect，滑动使用Scroller。
 * **功能** ：
    * 1、通过继承实现drawContent方法，使用参数绘制自己所需内容的自定义，其他功能皆由父类实现，如需修改可重载父类方法。
