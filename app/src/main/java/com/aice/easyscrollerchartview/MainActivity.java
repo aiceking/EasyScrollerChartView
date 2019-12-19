@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
                 break;
             case R.id.btn_refresh:
-                startActivity(new Intent(this,SwipRefreshAppbarActivity.class));
+                startActivity(new Intent(this, SwipRefreshActivity.class));
 
                 break;
         }

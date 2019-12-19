@@ -13,7 +13,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
@@ -31,7 +30,7 @@ import java.util.List;
 
 import static com.aice.easyscrollerchartview.listener.AppBarLayoutStateChangeListener.State.EXPANDED;
 
-public class SwipRefreshAppbarActivity extends AppCompatActivity {
+public class SwipRefreshActivity extends AppCompatActivity {
     @BindView(R.id.esc_view)
     MyScrollerChartView escView;
     @BindView(R.id.switch_horizontal_line)
@@ -77,18 +76,14 @@ public class SwipRefreshAppbarActivity extends AppCompatActivity {
     private List<ScrollerPointModel> myScrollerPointModelList;
     @BindView(R.id.swipe)
     SwipeRefreshLayout swipe;
-    @BindView(R.id.appbar_layout)
-    AppBarLayout appbarLayout;
-    private AppBarLayoutStateChangeListener.State appbarState;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_swip_refresh_appbar);
+        setContentView(R.layout.activity_swip_refresh);
         ButterKnife.bind(this);
         initScroll(savedInstanceState);
         initSeekBar();
         initSwipRefresh();
-        initAppbarListener();
     }
     private void initSwipRefresh() {
         swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -106,42 +101,14 @@ public class SwipRefreshAppbarActivity extends AppCompatActivity {
                             }
                         escView.setScrollerPointModelList(myScrollerPointModelList);
                         swipe.setRefreshing(false);
-                        if (appbarState==EXPANDED){
-                            swipe.setEnabled(true);
-                            escView.setEnableTouch(true);
-
-                        }else {
-                            swipe.setEnabled(false);
-                            escView.setEnableTouch(false);
-
-                        }
+                        escView.setEnableTouch(true);
                     }
                 },2000);
             }
         });
     }
 
-    private void initAppbarListener() {
-        appbarLayout.addOnOffsetChangedListener(new AppBarLayoutStateChangeListener() {
-            @Override
-            public void onStateChanged(AppBarLayout appBarLayout, State state) {
-                appbarState=state;
-                switch (state) {
-                    case EXPANDED:
-                        swipe.setEnabled(true);
-                        escView.setEnableTouch(true);
-                        break;
-                    case COLLAPSED:
-                    case INTERMEDIATE:
-                        escView.setEnableTouch(false);
-                        if (!swipe.isRefreshing()){
-                            swipe.setEnabled(false);
-                        }
-                        break;
-                }
-            }
-        });
-    }
+
     private void initSeekBar() {
 
         seekbarHorizontal.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -295,7 +262,7 @@ public class SwipRefreshAppbarActivity extends AppCompatActivity {
         escView.setOnClickListener(new EasyScrollerChartView.onClickListener() {
             @Override
             public void onClick(float x, float y) {
-                Toast.makeText(SwipRefreshAppbarActivity.this, x + "=" + y, Toast.LENGTH_SHORT).show();
+                Toast.makeText(SwipRefreshActivity.this, x + "=" + y, Toast.LENGTH_SHORT).show();
             }
         });
         escView.setOnPromiseParentTouchListener(new EasyScrollerChartView.onPromiseParentTouchListener() {
