@@ -21,8 +21,10 @@
    * 2、在SwipeRefreshLayout的OnRefreshListener中设置EasyScrollerChartView的setEnableTouch(false)方法通知刷新期间，EasyScrollerChartView不响应任何事件。
 
 
-| 屏幕旋转      |可配置属性  |下拉刷新及其他滑动冲突  |
-| :--------:| :--------:|  :--------:|  
-|![](https://github.com/NoEndToLF/EasyScrollerChartView/blob/master/DemoImage/demo1.gif)| ![](https://github.com/NoEndToLF/EasyScrollerChartView/blob/master/DemoImage/demo2.gif)| | ![](https://github.com/NoEndToLF/EasyScrollerChartView/blob/master/DemoImage/demo3.gif)| 
+| 屏幕旋转      |可配置属性  |
+| :--------:| :--------:| 
+|![](https://github.com/NoEndToLF/EasyScrollerChartView/blob/master/DemoImage/demo1.gif)| ![](https://github.com/NoEndToLF/EasyScrollerChartView/blob/master/DemoImage/demo2.gif)| 
  <br />
-   
+|下拉刷新及其他滑动冲突  |
+| :--------:|
+| ![](https://github.com/NoEndToLF/EasyScrollerChartView/blob/master/DemoImage/demo3.gif)| 
