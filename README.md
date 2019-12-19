@@ -11,7 +11,7 @@
 * **基本素质** ：
    * 1、旋转屏幕状态不丢失，转之前啥样，回来还是啥样（处理好onSaveInstanceState和onRestoreInstanceState）
    * 2、暴露事件冲突接口，允许外界操作父控件的事件及该view自己的事件（因为这只是个View，没办法直接处理所有的滑动冲突场景）
-   * 3、内存抖动要小，防止内存溢出。
+   * 3、永远只画显示范围内左右+1个坐标点，内存抖动要小，防止内存溢出。
 -------------------
 # 示例（只是画了一个简单的折线图）
 ## Demo演示了普通用法和涉及到SwipeRefreshLayout等类似的滑动冲突的用法（细节请看代码）。
@@ -29,3 +29,14 @@
 下拉刷新及其他滑动冲突  |
  :--------:|
  ![](https://github.com/NoEndToLF/EasyScrollerChartView/blob/master/DemoImage/demo3.gif)| 
+ 
+ # 开始使用  
+* [基本API](#基本API)
+* [使用](#使用)
+    * [引入](#引入)
+    * [EasyScrollerChartView](#布局XML中添加与系统View使用方式一样宽高如果只确定其一另一个根据parent的宽高和map的比例取最小值确定最终map的宽度和高度由padding决定)
+    * [代码中修改Data和View属性](#代码中通过ChinaMapView的getChinaMapModel方法拿到ChinaMapModel通过修改ChinaMapModel的属性来刷新ChinaMapView的显示效果其他的缩放倍数和接口通过ChinaMapView直接设置Demo中的SwipRefreshAppbarActivity和NormalActivity中有详细使用代码)
+
+# 基本API
+### Data实例类
+
