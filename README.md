@@ -13,7 +13,7 @@
    * 2、暴露事件冲突接口，允许外界操作父控件的事件及该view自己的事件（因为这只是个View，没办法直接处理所有的滑动冲突场景）
    * 3、内存抖动要小，防止内存溢出。
 -------------------
-# 示例
+# 示例（只是画了一个简单的折线图）
 ## Demo演示了普通用法和涉及到SwipeRefreshLayout等类似的滑动冲突的用法（细节请看代码）。
 * **1、普通使用** ：只有move的点左右滑动距离大于上下滑动距离才可以响应拖拽事件，否则通知父控件拦截。
 * **2、下拉刷新及其他滑动冲突** ：
@@ -26,8 +26,6 @@
 |![](https://github.com/NoEndToLF/EasyScrollerChartView/blob/master/DemoImage/demo1.gif)| ![](https://github.com/NoEndToLF/EasyScrollerChartView/blob/master/DemoImage/demo2.gif)| 
  <br />
  
-|下拉刷新及其他滑动冲突  |
-
-| :--------:|
-
-| ![](https://github.com/NoEndToLF/EasyScrollerChartView/blob/master/DemoImage/demo3.gif)| 
+下拉刷新及其他滑动冲突  |
+ :--------:|
+ ![](https://github.com/NoEndToLF/EasyScrollerChartView/blob/master/DemoImage/demo3.gif)| 
