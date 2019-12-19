@@ -20,8 +20,10 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.Scroller;
 
+import com.wxy.easyscrollerchartview.model.DrawPiontModel;
 import com.wxy.easyscrollerchartview.model.ScrollerPointModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -69,10 +71,9 @@ public abstract class EasyScrollerChartView extends View {
     private int mActivePointerId;
     private  final int INVALID_POINTER = -1;
     private int minX,maxX,minX_horizontalCoordinates,maxX_horizontalCoordinates;
-    private int  mLastX_dispatch,mLastY_dispatch ;
     private boolean isDrawVerticalLine;
     private boolean isDrawHorizontalLine;
-
+    private List<DrawPiontModel> drawPiontModelList;
     public void setEnableTouch(boolean enableTouch) {
         this.enableTouch = enableTouch;
     }
@@ -131,7 +132,7 @@ public abstract class EasyScrollerChartView extends View {
         pointTextPaint.setTextAlign(Paint.Align.CENTER);
         pointTextPaint.setTextSize(40);
         pointTextPaint.setColor(Color.BLACK);
-
+        drawPiontModelList=new ArrayList<>();
         scroller=new Scroller(context);
         isDrawHorizontalLine=true;
         isDrawVerticalLine=true;
@@ -267,7 +268,7 @@ public abstract class EasyScrollerChartView extends View {
         /**画横坐标的刻度值*/
         drawHorizontalLineCoordinates(canvas,originalPoint);
         /**画所有的点*/
-        drawContent(canvas,originalPoint,scrollerPointModelList,minX,maxX,horizontalAverageWidth/horizontalAverageWeight,
+        drawContent(canvas,originalPoint,scrollerPointModelList,drawPiontModelList,horizontalAverageWidth/horizontalAverageWeight,
                 verticalRegionLength,new Rect(originalPoint.x+getScrollX(),getPaddingTop(),getWidth()-getPaddingRight()+getScrollX(),getHeight()-getPaddingBottom()));
         if (saveInstanceStateScrollX!=0){
             scrollTo((int)(saveInstanceStateScrollX*(getWidth()-getPaddingRight()-originalPoint.x)),0);
@@ -289,6 +290,13 @@ public abstract class EasyScrollerChartView extends View {
 
         minX_horizontalCoordinates=minX_horizontalCoordinates>=0?minX_horizontalCoordinates:0;
         maxX_horizontalCoordinates=maxX_horizontalCoordinates<=horizontalCoordinatesList.size()?maxX_horizontalCoordinates:horizontalCoordinatesList.size();
+        //准备可画的数据
+        drawPiontModelList.clear();
+        for (int i=minX;i<maxX;i++ ){
+            DrawPiontModel drawPiontModel=new DrawPiontModel(calculateX(i),calculateY(scrollerPointModelList.get(i).getY()));
+            drawPiontModelList.add(drawPiontModel);
+        }
+
     }
     //转化成相对当前坐标系的坐标
     public float calculateX(float x) {
@@ -319,7 +327,7 @@ public abstract class EasyScrollerChartView extends View {
     }
 
     public abstract void drawContent(Canvas canvas, Point originalPoint, List<? extends ScrollerPointModel> scrollerPointModelList,
-                                     int minX, int maxX,
+                                     List<DrawPiontModel> drawPiontModelList,
                                      float RealhorizontalAverageWidth,
                                      float verticalRegionLength, Rect rect);
 
@@ -470,7 +478,7 @@ public abstract class EasyScrollerChartView extends View {
                         }
                     int dx = (int) event.getX(activePointerIndex) - mLastX;
 
-                    if (getScrollX() < 0 || getScrollX() >= ((scrollerPointModelList.size()+horizontalMin)  * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
+                    if (getScrollX() < 0 || getScrollX() >= ((scrollerPointModelList.size()+horizontalMin)  * (horizontalAverageWidth/horizontalAverageWeight) - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
                         dx =(int) (dx * scrollSideDamping);
                     }
                     scrollBy(-dx, 0);
@@ -484,8 +492,8 @@ public abstract class EasyScrollerChartView extends View {
                 if (getScrollX() < 0) {
                     scroller.startScroll(getScrollX(), 0, -getScrollX(), 0, 800);
                     invalidate();
-                } else if (getScrollX() >= ((scrollerPointModelList.size()+horizontalMin) * horizontalAverageWidth - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
-                    scroller.startScroll(getScrollX(), 0, (int) ((scrollerPointModelList.size()+horizontalMin)  * horizontalAverageWidth - (getWidth() - getPaddingRight() - originalPoint.x) - getScrollX()), 0, 800);
+                } else if (getScrollX() >= ((scrollerPointModelList.size()+horizontalMin) * (horizontalAverageWidth/horizontalAverageWeight) - ((getWidth() - getPaddingRight() - originalPoint.x)))) {
+                    scroller.startScroll(getScrollX(), 0, (int) ((scrollerPointModelList.size()+horizontalMin)  * (horizontalAverageWidth/horizontalAverageWeight) - (getWidth() - getPaddingRight() - originalPoint.x) - getScrollX()), 0, 800);
                     invalidate();
                 }
                     }
@@ -498,15 +506,15 @@ public abstract class EasyScrollerChartView extends View {
                 if (Math.abs(clickX)<= ViewConfiguration.get(getContext()).getScaledTouchSlop()&&
                         Math.abs(clickY)<= ViewConfiguration.get(getContext()).getScaledTouchSlop()){
                     if (onClickListener!=null){
-                        onClickListener.onClick(((event.getX()+getScrollX())-originalPoint.x)/horizontalAverageWidth*horizontalAverageWeight-horizontalMin,
+                        onClickListener.onClick(((event.getX()+getScrollX())-originalPoint.x)/(horizontalAverageWidth/horizontalAverageWeight)*horizontalAverageWeight-horizontalMin,
                                 (originalPoint.y- event.getY())/verticalRegionLength*(verticalMax-verticalMin)+verticalMin);
                     }
                     if (isScoll){
                     if (getScrollX()<0){
                         scroller.startScroll(getScrollX(),0,-getScrollX(),0,800);
                         invalidate();
-                    }else if (getScrollX()>=((scrollerPointModelList.size()+horizontalMin) *horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x)))){
-                        scroller.startScroll(getScrollX(),0,(int) ((scrollerPointModelList.size()+horizontalMin) *horizontalAverageWidth-(getWidth()-getPaddingRight()-originalPoint.x)-getScrollX()),0,800);
+                    }else if (getScrollX()>=((scrollerPointModelList.size()+horizontalMin) *(horizontalAverageWidth/horizontalAverageWeight)-((getWidth()-getPaddingRight()-originalPoint.x)))){
+                        scroller.startScroll(getScrollX(),0,(int) ((scrollerPointModelList.size()+horizontalMin) *(horizontalAverageWidth/horizontalAverageWeight)-(getWidth()-getPaddingRight()-originalPoint.x)-getScrollX()),0,800);
                         invalidate();
                     }}
                 }else {
@@ -514,15 +522,15 @@ public abstract class EasyScrollerChartView extends View {
                 if (getScrollX()<0){
                     scroller.startScroll(getScrollX(),0,-getScrollX(),0,800);
                     invalidate();
-                }else if (getScrollX()>=((scrollerPointModelList.size()+horizontalMin) *horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x)))){
-                    scroller.startScroll(getScrollX(),0,(int) ((scrollerPointModelList.size()+horizontalMin) *horizontalAverageWidth-(getWidth()-getPaddingRight()-originalPoint.x)-getScrollX()),0,800);
+                }else if (getScrollX()>=((scrollerPointModelList.size()+horizontalMin) *(horizontalAverageWidth/horizontalAverageWeight)-((getWidth()-getPaddingRight()-originalPoint.x)))){
+                    scroller.startScroll(getScrollX(),0,(int) ((scrollerPointModelList.size()+horizontalMin) *(horizontalAverageWidth/horizontalAverageWeight)-(getWidth()-getPaddingRight()-originalPoint.x)-getScrollX()),0,800);
                     invalidate();
                }else{
                     final int pointerId = event.getPointerId(0);
                     mVelocityTracker.computeCurrentVelocity(1000, ViewConfiguration.getMaximumFlingVelocity());
                     final int velocityX = (int)mVelocityTracker.getXVelocity(pointerId);
                     isFling=true;
-                    scroller.fling(getScrollX(),0,-velocityX,0,-(getWidth()-getPaddingRight()-originalPoint.x),(int) (scrollerPointModelList.size()*horizontalAverageWidth)+(getWidth()-getPaddingRight()-originalPoint.x),0,0);
+                    scroller.fling(getScrollX(),0,-velocityX,0,-(getWidth()-getPaddingRight()-originalPoint.x),(int) (scrollerPointModelList.size()*(horizontalAverageWidth/horizontalAverageWeight))+(getWidth()-getPaddingRight()-originalPoint.x),0,0);
                     invalidate();
                     if (mVelocityTracker != null) {
                         mVelocityTracker.clear();
@@ -575,9 +583,9 @@ public abstract class EasyScrollerChartView extends View {
                         scroller.startScroll(getScrollX(),0,-getScrollX(),0,800);
                         invalidate();
                     }
-                    else if (getScrollX()>=((scrollerPointModelList.size()+horizontalMin) *horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x)))){
+                    else if (getScrollX()>=((scrollerPointModelList.size()+horizontalMin) *(horizontalAverageWidth/horizontalAverageWeight)-((getWidth()-getPaddingRight()-originalPoint.x)))){
                         isFling=false;
-                        scroller.startScroll(getScrollX(),0,(int) ( ((scrollerPointModelList.size()+horizontalMin) *horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x)))-getScrollX()),0,800);
+                        scroller.startScroll(getScrollX(),0,(int) ( ((scrollerPointModelList.size()+horizontalMin) *(horizontalAverageWidth/horizontalAverageWeight)-((getWidth()-getPaddingRight()-originalPoint.x)))-getScrollX()),0,800);
                         invalidate();
                     }
                 }else {
@@ -587,10 +595,10 @@ public abstract class EasyScrollerChartView extends View {
                         scroller.startScroll(getScrollX(),0,-getScrollX(),0,800);
                         invalidate();
 
-                    }else if (getScrollX()>= ((scrollerPointModelList.size()+horizontalMin) *horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x))+((getWidth()-getPaddingRight()-originalPoint.x))/2)){
+                    }else if (getScrollX()>= ((scrollerPointModelList.size()+horizontalMin) *(horizontalAverageWidth/horizontalAverageWeight)-((getWidth()-getPaddingRight()-originalPoint.x))+((getWidth()-getPaddingRight()-originalPoint.x))/2)){
                         scroller.abortAnimation();
                         isFling=false;
-                        scroller.startScroll(getScrollX(),0,(int) ( ((scrollerPointModelList.size()+horizontalMin) *horizontalAverageWidth-((getWidth()-getPaddingRight()-originalPoint.x)))-getScrollX()),0,800);
+                        scroller.startScroll(getScrollX(),0,(int) ( ((scrollerPointModelList.size()+horizontalMin) *(horizontalAverageWidth/horizontalAverageWeight)-((getWidth()-getPaddingRight()-originalPoint.x)))-getScrollX()),0,800);
                         invalidate();
                     }else {
                         scrollTo(scroller.getCurrX(), scroller.getCurrY());
@@ -667,6 +675,7 @@ public abstract class EasyScrollerChartView extends View {
 
     public void setScrollerPointModelList(List<? extends ScrollerPointModel> scrollerPointModelList) {
         this.scrollerPointModelList = scrollerPointModelList;
+        originalPoint=null;
         invalidate();
     }
 
@@ -693,15 +702,15 @@ public abstract class EasyScrollerChartView extends View {
     public void notifySettingChanged() {
         invalidate();
     }
+    public void notifyDataChanged() {
+        originalPoint=null;
+        invalidate();
+    }
    public interface onClickListener{
        void onClick(float x,float y);
    }
     public interface onPromiseParentTouchListener{
         void onPromiseTouch(boolean promise);
     }
-    public enum ScrollDirection{
-        PullDown,
-        UpSlip,
-        None,
-    }
+
 }

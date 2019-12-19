@@ -167,7 +167,7 @@ public class NoScrollActivity extends AppCompatActivity {
         //所有的点
         myScrollerPointModelList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            ScrollerPointModel myScrollerPointModel = new ScrollerPointModel(i, ((int) (Math.random() * 5 + 1)) * 5000);
+            ScrollerPointModel myScrollerPointModel = new ScrollerPointModel(((int) (Math.random() * 5 + 1)) * 5000);
             myScrollerPointModelList.add(myScrollerPointModel);
         }
         escView.setScrollerPointModelList(myScrollerPointModelList);

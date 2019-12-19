@@ -96,10 +96,10 @@ public class SwipRefreshActivity extends AppCompatActivity {
                     public void run() {
                             myScrollerPointModelList.clear();
                             for (int i = 0; i < 101; i++) {
-                                ScrollerPointModel myScrollerPointModel = new ScrollerPointModel(i, ((int) (Math.random() * 5 + 1)) * 5000);
+                                ScrollerPointModel myScrollerPointModel = new ScrollerPointModel( ((int) (Math.random() * 5 + 1)) * 5000);
                                 myScrollerPointModelList.add(myScrollerPointModel);
                             }
-                        escView.setScrollerPointModelList(myScrollerPointModelList);
+                        escView.notifyDataChanged();
                         swipe.setRefreshing(false);
                         escView.setEnableTouch(true);
                     }
@@ -246,7 +246,7 @@ public class SwipRefreshActivity extends AppCompatActivity {
         if (myScrollerPointModelList == null) {
             myScrollerPointModelList = new ArrayList<>();
             for (int i = 0; i < 101; i++) {
-                ScrollerPointModel myScrollerPointModel = new ScrollerPointModel(i, ((int) (Math.random() * 5 + 1)) * 5000);
+                ScrollerPointModel myScrollerPointModel = new ScrollerPointModel( ((int) (Math.random() * 5 + 1)) * 5000);
                 myScrollerPointModelList.add(myScrollerPointModel);
             }
         }

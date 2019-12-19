@@ -217,7 +217,7 @@ public class ScrollActivity extends AppCompatActivity {
         if (myScrollerPointModelList == null) {
             myScrollerPointModelList = new ArrayList<>();
             for (int i = 0; i < 101; i++) {
-                ScrollerPointModel myScrollerPointModel = new ScrollerPointModel(i, ((int) (Math.random() * 5 + 1)) * 5000);
+                ScrollerPointModel myScrollerPointModel = new ScrollerPointModel( ((int) (Math.random() * 5 + 1)) * 5000);
                 myScrollerPointModelList.add(myScrollerPointModel);
             }
         }

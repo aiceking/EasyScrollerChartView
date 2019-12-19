@@ -33,8 +33,8 @@ dependencies {
     //butterknife
     implementation 'com.jakewharton:butterknife:10.0.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.0.0'
-//    implementation project(':easyscrollerchartviewlibrary')
-    implementation 'com.github.NoEndToLF:EasyScrollerChartView:1.0.1'
+    implementation project(':easyscrollerchartviewlibrary')
+//    implementation 'com.github.NoEndToLF:EasyScrollerChartView:1.0.1'
     //colorpicker
     implementation 'com.github.duanhong169:colorpicker:1.1.6'
     //switchbutton
