@@ -25,6 +25,9 @@
 | :--------:| :--------:| 
 |![](https://github.com/NoEndToLF/EasyScrollerChartView/blob/master/DemoImage/demo1.gif)| ![](https://github.com/NoEndToLF/EasyScrollerChartView/blob/master/DemoImage/demo2.gif)| 
  <br />
+ 
 |下拉刷新及其他滑动冲突  |
+
 | :--------:|
+
 | ![](https://github.com/NoEndToLF/EasyScrollerChartView/blob/master/DemoImage/demo3.gif)| 
