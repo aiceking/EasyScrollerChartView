@@ -101,7 +101,7 @@ Step 1. Add it in your root build.gradle at the end of repositories:
 Step 2. Add the dependency
 
 	dependencies {
-	        implementation 'com.github.NoEndToLF:EasyScrollerChartView:1.0.2'
+	        implementation 'com.github.NoEndToLF:EasyScrollerChartView:1.0.3'
 	}
 ### 新建自己的View类，继承EasyScrollerChartView，实现drawContent方法，如有需要，还可以按实际需求重写父类的其他方法
 #### drawContent方法
