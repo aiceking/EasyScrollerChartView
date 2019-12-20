@@ -70,15 +70,15 @@ public abstract class EasyScrollerChartView extends View {
     private onClickListener onClickListener;
     private int mActivePointerId;
     private  final int INVALID_POINTER = -1;
-    private int minX,maxX,minX_horizontalCoordinates,maxX_horizontalCoordinates;
-    private boolean isDrawVerticalLine;
-    private boolean isDrawHorizontalLine;
-    private List<DrawPiontModel> drawPiontModelList;
+    protected int minX,maxX,minX_horizontalCoordinates,maxX_horizontalCoordinates;
+    protected boolean isDrawVerticalLine;
+    protected boolean isDrawHorizontalLine;
+    protected List<DrawPiontModel> drawPiontModelList;
     public void setEnableTouch(boolean enableTouch) {
         this.enableTouch = enableTouch;
     }
 
-    private boolean enableTouch;
+    protected boolean enableTouch;
 
     public void setOnPromiseParentTouchListener(EasyScrollerChartView.onPromiseParentTouchListener onPromiseParentTouchListener) {
         this.onPromiseParentTouchListener = onPromiseParentTouchListener;
