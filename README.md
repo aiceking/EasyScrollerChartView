@@ -35,9 +35,8 @@
 * [基本API](#基本API)
 * [使用](#使用)
     * [引入](#引入)
-    * [继承EasyScrollerChartView](#新建自己的View类继承EasyScrollerChartView实现drawContent方法
-)
-    * [代码中修改Data和View属性](#代码中修改Data和View属性)
+    * [继承EasyScrollerChartView](#新建自己的View类继承EasyScrollerChartView实现drawContent方法如有需要还可以按实际需求重写父类的其他方法)
+    * [代码中修改Data和View属性](#代码中修改Data和View属性以可滑动的折线图为例Demo中ScrollActivity和SwipRefreshActivity)
 * [反馈与建议](#反馈与建议)
 # 基本API
 
