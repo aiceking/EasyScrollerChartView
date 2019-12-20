@@ -477,7 +477,7 @@ private void initSeekBar() {
     }
 ```
 # 反馈与建议
-- 邮箱：<871601607@qq.com>
+- 邮箱：<wxy314309@foxmail.com>
 
 # License
 ```
