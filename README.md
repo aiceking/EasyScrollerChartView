@@ -35,9 +35,10 @@
 * [基本API](#基本API)
 * [使用](#使用)
     * [引入](#引入)
-    * [继承EasyScrollerChartView](#布局XML中添加与系统View使用方式一样宽高如果只确定其一另一个根据parent的宽高和map的比例取最小值确定最终map的宽度和高度由padding决定)
-    * [代码中修改Data和View属性](#代码中通过ChinaMapView的getChinaMapModel方法拿到ChinaMapModel通过修改ChinaMapModel的属性来刷新ChinaMapView的显示效果其他的缩放倍数和接口通过ChinaMapView直接设置Demo中的SwipRefreshAppbarActivity和NormalActivity中有详细使用代码)
-
+    * [继承EasyScrollerChartView](#新建自己的View类继承EasyScrollerChartView实现drawContent方法
+)
+    * [代码中修改Data和View属性](#代码中修改Data和View属性)
+* [反馈与建议](#反馈与建议)
 # 基本API
 
 ### Data实例类ScrollerPointModel
@@ -103,8 +104,8 @@ Step 2. Add the dependency
 	dependencies {
 	        implementation 'com.github.NoEndToLF:EasyScrollerChartView:1.0.2'
 	}
-### 新建自己的View类，继承EasyScrollerChartView，实现drawContent方法
-
+### 新建自己的View类，继承EasyScrollerChartView，实现drawContent方法，如有需要，还可以按实际需求重写父类的其他方法
+#### drawContent方法
 |参数  | 作用  |
 | :--------| :--: |
 |canvas  | 绘制所需的canvas  |
@@ -113,6 +114,13 @@ Step 2. Add the dependency
 |realHorizontalAverageWidth  | 每个点横坐标直接的距离（方便用来画柱图之类的）  |
 |verticalRegionLength  | 纵坐标最大值和最小值区间转换成当前View坐标系的距离  |
 |Rect  | 可绘制的区域，横坐标之上，纵坐标之又，需要结合canvas.clipRect(rect)来灵活使用使用  |
+#### 可重载的其他方法
+|方法  | 作用  |
+| :--------| :--: |
+|drawHorizontalLine  | 画横坐标轴  |
+|drawVerticalLine  | 画纵坐标轴  |
+|drawVerticalLineCoordinates  | 画横坐标刻度值  |
+|drawHorizontalLineCoordinates  | 画纵坐标刻度值  |
 ### Demo中只是画了简单的折线图，的例子如下
 ```java
 public class MyScrollerChartView extends EasyScrollerChartView {
@@ -168,4 +176,330 @@ public class MyScrollerChartView extends EasyScrollerChartView {
                 android:id="@+id/esc_view">
             </com.aice.easyscrollerchartview.view.MyScrollerChartView>
 ``` 
-### 代码中修改Data和View属性
+### 代码中修改Data和View属性，以可滑动的折线图为例，Demo中ScrollActivity和SwipRefreshActivity
+#### 设置View所需数据和基本配置
+```java
+private void initScroll(Bundle savedInstanceState) {
+ List<String> verticalCoordinatesList = new ArrayList<>();
+        verticalCoordinatesList.add("5000");
+        verticalCoordinatesList.add("10000");
+        verticalCoordinatesList.add("15000");
+        verticalCoordinatesList.add("20000");
+        verticalCoordinatesList.add("25000");
+        verticalCoordinatesList.add("30000");
+        //纵坐标刻度值文字
+        escView.setVerticalCoordinatesList(verticalCoordinatesList);
+        List<String> horizontalCoordinatesList_Scoll = new ArrayList<>();
+        for (int i = 0; i < 101; i++) {
+            horizontalCoordinatesList_Scoll.add(i + "");
+        }
+        if (savedInstanceState != null) {
+            myScrollerPointModelList = (ArrayList) savedInstanceState.getParcelableArrayList("myScrollerPointModelList");
+        }
+        //所有的点
+        if (myScrollerPointModelList == null) {
+            myScrollerPointModelList = new ArrayList<>();
+            for (int i = 0; i < 101; i++) {
+                ScrollerPointModel myScrollerPointModel = new ScrollerPointModel( ((int) (Math.random() * 5 + 1)) * 5000);
+                myScrollerPointModelList.add(myScrollerPointModel);
+            }
+        }
+        escView.setScrollerPointModelList(myScrollerPointModelList);
+        //纵坐标最大和最小值
+        escView.setVerticalMinAndMax(5000, 30000);
+        //横坐标的起始值和每一个刻度区间画几个点
+        escView.setHorizontalMinAndAverageWeight(0, 1);
+        //横坐标的刻度值文字和每一个刻度区间占可画区域内宽度的多少，比如这里是5分之1
+        escView.setHorizontalCoordinatesListScroll(horizontalCoordinatesList_Scoll, 0.2f);
+        //滑动到左右边界的阻尼系数
+        escView.setScrollSideDamping(0.5f);
+        escView.setOnClickListener(new EasyScrollerChartView.onClickListener() {
+            @Override
+            public void onClick(float x, float y) {
+                Toast.makeText(SwipRefreshActivity.this, x + "=" + y, Toast.LENGTH_SHORT).show();
+            }
+        });
+	//设置滑动期间不允许SwipeRefreshLayout拦截事件
+        escView.setOnPromiseParentTouchListener(new EasyScrollerChartView.onPromiseParentTouchListener() {
+            @Override
+            public void onPromiseTouch(boolean promise) {
+                    swipe.setEnabled(promise);
+            }
+        });
+	}
+``` 
+#### 设置下来刷新期间，不允许view消费事件
+```java
+private void initSwipRefresh() {
+        swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                escView.setEnableTouch(false);
+                //模拟耗时
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                            myScrollerPointModelList.clear();
+                            for (int i = 0; i < 101; i++) {
+                                ScrollerPointModel myScrollerPointModel = new ScrollerPointModel( ((int) (Math.random() * 5 + 1)) * 5000);
+                                myScrollerPointModelList.add(myScrollerPointModel);
+                            }
+                        escView.notifyDataChanged();
+                        swipe.setRefreshing(false);
+                        escView.setEnableTouch(true);
+                    }
+                },2000);
+            }
+        });
+    }
+```
+#### 其他属性的修改如下
+```java
+private void initSeekBar() {
+        //修改横坐标刻度值文字的大小
+        seekbarHorizontal.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                int size = (int) ((float) progress / 100 * 100);
+                tvHorizontalSize.setText("HorizontalTextSize：" + size);
+                escView.getHorizontalTextPaint().setTextSize(size);
+                //重置坐标系
+                escView.reSetCoordinates();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+	//修改纵坐标刻度值文字的大小
+        seekbarVertical.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                int size = (int) ((float) progress / 100 * 100);
+                tvVerticalSize.setText("VertialTextSize：" + size);
+                escView.getVerticalTextPaint().setTextSize(size);
+                //重置坐标系
+                escView.reSetCoordinates();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+        seekbarScrollSideDamping.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                escView.setScrollSideDamping((float) progress / 100);
+                tvScrollSideDamping.setText("滑动到边界阻尼系数：" + ((float) progress / 100));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+        seekbarHorizontalRatio.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                escView.setHorizontalRatio((float) progress / 100);
+                escView.reSetCoordinates();
+                tvHorizontalRatio.setText("横坐标区间占可画区域比例：" + (float) progress / 100);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+	//设置每个横坐标区间画多少个点
+        seekbarHorizontalAverageWeight.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                escView.setHorizontalMinAndAverageWeight(escView.getHorizontalMin(), ((float) progress / 10));
+                escView.reSetCoordinates();
+                tvHorizontalAverageWeight.setText("每个横坐标区间画多少个点：" + ((float) progress / 10));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+	//设置横坐标从第几个横坐标点画起
+        seekbarHorizontalStart.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                escView.setHorizontalMinAndAverageWeight((int)((float) progress / 10),escView.getHorizontalAverageWeight());
+                escView.reSetCoordinates();
+                tvHorizontalStart.setText("横坐标从第几个画起：" + (int)((float) progress / 10));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+    }
+```
+
+```java
+ @OnClick({R.id.switch_horizontal_line, R.id.switch_vertical_line, R.id.btn_horizontal_text_color, R.id.btn_vertical_text_color, R.id.btn_horizontal_line_color, R.id.btn_vertical_line_color})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+	    //是否画横坐标轴
+            case R.id.switch_horizontal_line:
+                if (switchHorizontalLine.isOpened()) {
+                    tvHorizontalLine.setText("是否画横坐标轴：是");
+                    escView.setDrawHorizontalLine(true);
+                } else {
+                    tvHorizontalLine.setText("是否画横坐标轴：否");
+                    escView.setDrawHorizontalLine(false);
+                }
+                break;
+		//是否画纵坐标轴
+            case R.id.switch_vertical_line:
+                if (switchVerticalLine.isOpened()) {
+                    escView.setDrawVerticalLine(true);
+                    tvVerticalLine.setText("是否画纵坐标轴：是");
+                } else {
+                    escView.setDrawVerticalLine(false);
+                    tvVerticalLine.setText("是否画纵坐标轴：否");
+                }
+                break;
+		//修改横坐标刻度值文字颜色
+            case R.id.btn_horizontal_text_color:
+                new ColorPickerPopup.Builder(this)
+                        .initialColor(Color.RED) // Set initial color
+                        .enableBrightness(true) // Enable brightness slider or not
+                        .enableAlpha(true) // Enable alpha slider or not
+                        .okTitle("确定")
+                        .cancelTitle("取消")
+                        .showIndicator(true)
+                        .showValue(true)
+                        .build()
+                        .show(btnHorizontalTextColor, new ColorPickerPopup.ColorPickerObserver() {
+                            @Override
+                            public void onColorPicked(int color) {
+                                escView.getHorizontalTextPaint().setColor(color);
+                                escView.notifySettingChanged();
+                            }
+                        });
+                break;
+		//修改纵坐标刻度值文字颜色
+            case R.id.btn_vertical_text_color:
+                new ColorPickerPopup.Builder(this)
+                        .initialColor(Color.RED) // Set initial color
+                        .enableBrightness(true) // Enable brightness slider or not
+                        .enableAlpha(true) // Enable alpha slider or not
+                        .okTitle("确定")
+                        .cancelTitle("取消")
+                        .showIndicator(true)
+                        .showValue(true)
+                        .build()
+                        .show(btnVerticalTextColor, new ColorPickerPopup.ColorPickerObserver() {
+                            @Override
+                            public void onColorPicked(int color) {
+                                escView.getVerticalTextPaint().setColor(color);
+                                escView.notifySettingChanged();
+                            }
+                        });
+                break;
+		//修改横坐标轴颜色
+            case R.id.btn_horizontal_line_color:
+                new ColorPickerPopup.Builder(this)
+                        .initialColor(Color.RED) // Set initial color
+                        .enableBrightness(true) // Enable brightness slider or not
+                        .enableAlpha(true) // Enable alpha slider or not
+                        .okTitle("确定")
+                        .cancelTitle("取消")
+                        .showIndicator(true)
+                        .showValue(true)
+                        .build()
+                        .show(btnHorizontalLineColor, new ColorPickerPopup.ColorPickerObserver() {
+                            @Override
+                            public void onColorPicked(int color) {
+                                escView.getHorizontalLinePaint().setColor(color);
+                                escView.notifySettingChanged();
+                            }
+                        });
+                break;
+		//修改纵坐标轴颜色
+            case R.id.btn_vertical_line_color:
+                new ColorPickerPopup.Builder(this)
+                        .initialColor(Color.RED) // Set initial color
+                        .enableBrightness(true) // Enable brightness slider or not
+                        .enableAlpha(true) // Enable alpha slider or not
+                        .okTitle("确定")
+                        .cancelTitle("取消")
+                        .showIndicator(true)
+                        .showValue(true)
+                        .build()
+                        .show(btnVerticalLineColor, new ColorPickerPopup.ColorPickerObserver() {
+                            @Override
+                            public void onColorPicked(int color) {
+                                escView.getVerticalLinePaint().setColor(color);
+                                escView.notifySettingChanged();
+                            }
+                        });
+                break;
+        }
+    }
+```
+# 反馈与建议
+- 邮箱：<871601607@qq.com>
+
+# License
+```
+Copyright (c) [2018] [static]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+---------
